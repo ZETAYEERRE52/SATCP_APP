@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <!-- Contraseñas y clave del equipo: su llave de Keystore no viaja en la copia, y no deben salir del teléfono -->
+    <cloud-backup>
+        <exclude domain="sharedpref" path="satcp_redes.xml" />
+        <exclude domain="sharedpref" path="satcp_clave.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="satcp_redes.xml" />
+        <exclude domain="sharedpref" path="satcp_clave.xml" />
+    </device-transfer>
+</data-extraction-rules>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- El ESP32 solo habla HTTP. Se permite sin cifrar únicamente hacia él:
+     192.168.4.1 en la red propia y satcp.local en la red de la casa
+     (OkHttp pide satcp.local y DnsSatcp lo traduce a la IP encontrada). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.4.1</domain>
+        <domain includeSubdomains="false">satcp.local</domain>
+    </domain-config>
+</network-security-config>

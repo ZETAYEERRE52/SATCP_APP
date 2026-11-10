@@ -1,0 +1,321 @@
+<resources>
+    <string name="app_name">SATCP</string>
+
+    <!-- Conexión -->
+    <string name="conexion_titulo">Conectar con el SATCP</string>
+    <string name="conexion_explicacion">Elige cómo se conecta el teléfono con el equipo de la cocina.</string>
+    <string name="modo_red_propia">Red SATCP</string>
+    <string name="modo_red_casa">Red de la casa</string>
+    <string name="modo_bluetooth">Bluetooth</string>
+    <string name="red_propia_explicacion">El teléfono se une a la red Wi-Fi SATCP del equipo. Android te pedirá confirmar. Esa red no tiene internet: mientras estés conectado a ella, el resto de las apps usará los datos móviles.</string>
+    <string name="red_propia_explicacion_antigua">En esta versión de Android la app no puede unirse sola a la red: abre los ajustes de Wi-Fi, conéctate a SATCP (su contraseña es la clave del equipo) y vuelve aquí.</string>
+    <string name="red_propia_conectar">Conectar a la red SATCP</string>
+    <string name="abrir_ajustes_wifi">Abrir ajustes de Wi-Fi</string>
+    <string name="red_casa_explicacion">El equipo debe estar configurado en la red de la casa (pestaña Configuración) y el teléfono, conectado a esa misma red.</string>
+    <string name="red_casa_buscando">Buscando el equipo en la red…</string>
+    <string name="red_casa_ninguno">Todavía no aparece ningún equipo. Puedes escribir su IP.</string>
+    <string name="red_casa_error_busqueda">No se pudo buscar en la red. Escribe la IP del equipo.</string>
+    <string name="red_casa_equipo">%1$s · %2$s</string>
+    <string name="red_casa_ip_manual">IP del equipo</string>
+    <string name="red_casa_ip_ejemplo">Por ejemplo 192.168.1.40</string>
+    <string name="red_casa_ip_invalida">Escribe una IP como 192.168.1.40</string>
+    <string name="red_casa_conectar_ip">Conectar a esta IP</string>
+    <string name="bluetooth_explicacion">El teléfono se conecta directo al equipo, sin Wi-Fi. Debe estar a unos pocos metros. La vista en vivo de la cámara no funciona por Bluetooth.</string>
+    <string name="bluetooth_permiso_explicacion">Para encontrar el equipo y conectarse a él, Android pide permiso para usar dispositivos cercanos por Bluetooth.</string>
+    <string name="bluetooth_permiso_explicacion_antigua">Para buscar equipos Bluetooth, esta versión de Android pide el permiso de ubicación. La app no usa tu ubicación. La ubicación del teléfono también debe estar activada.</string>
+    <string name="bluetooth_permitir">Permitir</string>
+    <string name="bluetooth_permiso_denegado">Sin este permiso no se puede usar Bluetooth. Puedes concederlo en los ajustes de la app.</string>
+    <string name="abrir_ajustes_app">Abrir ajustes de la app</string>
+    <string name="bluetooth_no_disponible">Este teléfono no tiene Bluetooth LE.</string>
+    <string name="bluetooth_apagado">El Bluetooth está apagado.</string>
+    <string name="bluetooth_encender">Encender Bluetooth</string>
+    <string name="bluetooth_buscando">Buscando equipos SATCP cercanos…</string>
+    <string name="bluetooth_error_escaneo">No se pudo buscar por Bluetooth. Apaga y enciende el Bluetooth e inténtalo de nuevo.</string>
+    <string name="bluetooth_reintentar">Buscar de nuevo</string>
+    <string name="bluetooth_equipo">%1$s · %2$s · señal %3$d dBm</string>
+    <string name="bluetooth_sin_nombre">Sin nombre</string>
+    <string name="reconectar_ultima">Reconectar: %1$s</string>
+    <string name="ultima_red_propia">red SATCP</string>
+    <string name="ultima_red_casa">red de la casa (%1$s)</string>
+    <string name="ultima_bluetooth">Bluetooth (%1$s)</string>
+
+    <!-- Estado de la conexión -->
+    <string name="estado_conectando">Conectando…</string>
+    <string name="estado_conectando_intento">Reconectando (intento %1$d)…</string>
+    <string name="estado_conectado">Conectado</string>
+    <string name="estado_perdida_sin_eventos">Conexión perdida: no llegan datos del equipo</string>
+    <string name="estado_perdida_cerrada">Conexión perdida: el equipo cerró la conexión</string>
+    <string name="estado_perdida_error">Conexión perdida: %1$s</string>
+    <string name="estado_reintento">Se reintenta en %1$d s</string>
+    <string name="estado_desconectado">Desconectado</string>
+    <string name="estado_perdida_corto">Conexión perdida, reconectando…</string>
+    <string name="estado_perdida_no_encontrado">No se encuentra el equipo. Revisa que esté encendido y en la misma red que el teléfono, o conéctate por Bluetooth.</string>
+    <string name="estado_perdida_interrumpida">Conexión perdida: se interrumpió la comunicación con el equipo</string>
+    <string name="panel_temperatura_detalle">Sensor interno: %1$s · Línea base: %2$s</string>
+    <string name="canal_avisos">Avisos de conexión</string>
+    <string name="canal_avisos_descripcion">Avisa si se pierde la conexión con el equipo, porque sin ella no llegan alertas.</string>
+    <string name="notificacion_sin_conexion_titulo">Sin conexión con el equipo</string>
+    <string name="notificacion_sin_conexion_texto">Mientras no se recupere, no recibirás alertas de la cocina. La app sigue intentando reconectar.</string>
+    <string name="transporte_red_propia">Wi-Fi · red SATCP</string>
+    <string name="transporte_red_casa">Wi-Fi · red de la casa (%1$s)</string>
+    <string name="transporte_bluetooth">Bluetooth · %1$s</string>
+    <string name="desconectar">Desconectar</string>
+
+    <!-- Panel -->
+    <string name="panel_esperando">Esperando el estado del equipo…</string>
+    <string name="panel_datos_viejos">Estos datos son de antes de perder la conexión.</string>
+    <string name="panel_fase">Fase del sistema</string>
+    <string name="panel_temperatura">Temperatura</string>
+    <string name="panel_temperatura_medida">Medida</string>
+    <string name="panel_temperatura_estimada">Estimada del recipiente</string>
+    <string name="panel_presencia">Presencia (radar)</string>
+    <string name="panel_sensor_sin_respuesta">Sensor de temperatura sin respuesta: la detección depende solo de la cámara.</string>
+    <string name="panel_valvula">Válvula de gas</string>
+    <string name="valvula_abierta">Abierta</string>
+    <string name="valvula_cerrada">Cerrada</string>
+    <string name="valvula_desconocida">Sin datos</string>
+    <string name="valvula_medida">Medido por el sensor de posición.</string>
+    <string name="valvula_supuesta">Estado supuesto: el equipo no tiene sensor de posición.</string>
+    <string name="estado_clave_rechazada">El equipo rechazó la clave</string>
+    <string name="estado_perdida_red_no_disponible">No se pudo unir a la red SATCP. Revisa que el equipo esté cerca y que la clave sea correcta.</string>
+    <string name="estado_perdida_sin_espacio">El equipo tiene demasiadas conexiones abiertas.</string>
+    <string name="estado_perdida_firmware">La app y el equipo no son compatibles: el equipo necesita el firmware 2.0.0.</string>
+    <string name="estado_perdida_sesion">Conexión perdida: el equipo cerró la sesión cifrada</string>
+    <string name="clave_titulo">Clave del equipo</string>
+    <string name="clave_explicacion">Escribe la clave de la etiqueta pegada al equipo o, si ya la cambiaste, la actual. Se guarda cifrada en este teléfono. También es la contraseña de la red SATCP.</string>
+    <string name="clave_campo">Clave del equipo</string>
+    <string name="clave_invalida">Debe tener de 8 a 63 caracteres, sin tildes ni ñ.</string>
+    <string name="clave_guardar">Guardar clave</string>
+    <string name="clave_rechazada">El equipo rechazó la clave guardada. Escríbela de nuevo.</string>
+    <string name="clave_olvidada">Si la olvidaste, mantén presionado el botón BOOT del equipo durante 15 s, fuera de una alerta o un bloqueo. Volverá a la clave de la etiqueta.</string>
+    <string name="clave_escribir_otra">Escribir otra clave del equipo</string>
+    <string name="config_clave_titulo">Cambiar la clave del equipo</string>
+    <string name="config_clave_explicacion">También cambia la contraseña de la red SATCP. Todos los teléfonos conectados se desconectarán y necesitarán la clave nueva; este se reconectará solo.</string>
+    <string name="config_clave_nueva">Clave nueva</string>
+    <string name="config_clave_repetir">Repite la clave nueva</string>
+    <string name="config_clave_no_coinciden">Las dos claves no coinciden.</string>
+    <string name="config_clave_cambiar">Cambiar clave</string>
+    <string name="config_clave_lista">Clave cambiada. Reconectando con la clave nueva…</string>
+    <string name="config_clave_rechazada">El equipo no aceptó esa clave. Debe tener de 8 a 63 caracteres, sin tildes ni ñ.</string>
+    <string name="config_clave_sin_respuesta">El equipo no respondió, así que no se sabe si la clave cambió. Si al reconectar la rechaza, escribe la nueva.</string>
+    <string name="panel_distancias">En movimiento a %1$d cm · quieta a %2$d cm</string>
+    <string name="panel_alerta">Alerta: %1$s</string>
+    <string name="temperatura_valor">%1$.1f °C</string>
+    <string name="sin_valor">—</string>
+
+    <string name="fase_monitoreo">Vigilando</string>
+    <string name="fase_validar_presencia">Comprobando si hay alguien</string>
+    <string name="fase_deteccion_visual">Revisando con la cámara</string>
+    <string name="fase_alerta_usuario">¡Alerta! Esperando tu respuesta</string>
+    <string name="fase_cierre_automatico">Cerrando el suministro</string>
+    <string name="fase_bloqueado">Suministro cortado: hay que rearmar</string>
+    <string name="fase_autocalibracion">Calibrando</string>
+    <string name="fase_desconocida">Fase desconocida</string>
+
+    <string name="presencia_nadie">Nadie en la cocina</string>
+    <string name="presencia_en_movimiento">Alguien en movimiento</string>
+    <string name="presencia_quieta">Alguien quieto</string>
+    <string name="presencia_en_movimiento_y_quieta">Alguien en movimiento y alguien quieto</string>
+    <string name="presencia_sin_datos">El radar no da datos</string>
+    <string name="presencia_desconocida">Estado desconocido</string>
+
+    <!-- Servicio y notificaciones -->
+    <string name="canal_vigilancia">Vigilancia</string>
+    <string name="canal_vigilancia_descripcion">Aviso permanente mientras la app mantiene la conexión con el equipo.</string>
+    <string name="canal_alertas">Alertas de la cocina</string>
+    <string name="canal_alertas_descripcion">Fuego, humo o corte del suministro. Suenan como una alarma.</string>
+    <string name="notificacion_vigilando">SATCP vigilando la cocina</string>
+    <string name="notificacion_detener">Detener</string>
+    <string name="notificacion_alerta_titulo">¡Alerta en la cocina!</string>
+    <string name="notificacion_alerta_texto">Motivo: %1$s. El suministro se cortará en %2$d s si nadie responde.</string>
+    <string name="notificacion_alerta_sin_cuenta">Motivo: %1$s.</string>
+    <string name="notificacion_rearme_titulo">Se cortó el suministro</string>
+    <string name="notificacion_rearme_texto">El sistema cerró el suministro y quedó bloqueado. Revisa la cocina y luego rearma desde la app.</string>
+    <string name="notificacion_fallo_respuesta">No se pudo enviar tu respuesta</string>
+    <string name="notificacion_fallo_respuesta_texto">Abre la alerta y vuelve a tocar «Estoy en la cocina».</string>
+
+    <!-- Alerta -->
+    <string name="alerta_estoy_en_la_cocina">Estoy en la cocina</string>
+    <string name="alerta_cierre_en">Cierre automático en</string>
+    <string name="alerta_segundos">%1$d s</string>
+    <string name="alerta_rearmar">Ya revisé: rearmar</string>
+    <string name="alerta_terminada">No hay ninguna alerta activa.</string>
+    <string name="alerta_sin_datos">Sin conexión con el equipo: no se sabe si la alerta sigue activa.</string>
+    <string name="rearme_confirmar_titulo">¿Rearmar el sistema?</string>
+    <string name="rearme_confirmar_texto">¿Revisaste la cocina, apagaste las perillas y abriste la válvula a mano?</string>
+    <string name="rearme_confirmar_si">Rearmar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="cerrar">Cerrar</string>
+    <string name="resultado_respondido">Listo: se canceló el cierre automático.</string>
+    <string name="resultado_rearmado">Listo: el sistema quedó rearmado.</string>
+    <string name="resultado_sin_alerta">La alerta ya había terminado.</string>
+    <string name="resultado_no_bloqueado">El sistema ya no estaba bloqueado.</string>
+    <string name="resultado_sin_conexion">No hay conexión con el equipo. Inténtalo de nuevo.</string>
+    <string name="resultado_sin_respuesta">El equipo no respondió. Inténtalo de nuevo.</string>
+    <string name="resultado_error">El equipo rechazó el comando.</string>
+
+    <!-- Cierre manual y motivo del bloqueo -->
+    <string name="cierre_titulo">Se cortó el suministro</string>
+    <string name="cierre_manual">Cerrado por ti desde la app</string>
+    <string name="cierre_horario">Cerrado por horario programado</string>
+    <string name="cierre_reinicio">El equipo se reinició con la válvula cerrada y sigue bloqueado</string>
+    <string name="cierre_manual_explicacion">Corta el suministro ahora, aunque no haya ninguna alerta. Quedará cerrado hasta que lo rearmes.</string>
+    <string name="cierre_manual_boton">Cerrar suministro</string>
+    <string name="cierre_manual_confirmar_titulo">¿Cerrar el suministro?</string>
+    <string name="cierre_manual_confirmar_texto">El equipo cortará el suministro de la estufa y quedará bloqueado hasta que lo rearmes desde la app.</string>
+    <string name="cierre_manual_confirmar_si">Cerrar</string>
+    <string name="notificacion_cierre_en_curso">Cerrando el suministro…</string>
+    <string name="resultado_cierre_aceptado">Cierre aceptado: el equipo cortará el suministro en unos segundos.</string>
+    <string name="resultado_ya_bloqueado">El suministro ya estaba cerrado. Para volver a usarlo, rearma el sistema.</string>
+    <string name="resultado_firmware_antiguo">El equipo no conoce este comando: actualiza el firmware a la versión 2.0.0 o posterior.</string>
+    <string name="resultado_valvula_cerrada">La válvula sigue cerrada. Ábrela a mano con su botón y vuelve a rearmar.</string>
+
+    <!-- Permisos de alertas -->
+    <string name="permiso_notificaciones_explicacion">Para avisarte de fuego o humo aunque la app esté cerrada, permite que muestre notificaciones.</string>
+    <string name="permiso_notificaciones_permitir">Permitir notificaciones</string>
+    <string name="permiso_notificaciones_rechazado">Sin notificaciones no recibirás las alertas fuera de la app.</string>
+    <string name="permiso_pantalla_completa_explicacion">Para que una alerta encienda la pantalla y se muestre aunque el teléfono esté bloqueado, permite las notificaciones a pantalla completa.</string>
+    <string name="permiso_pantalla_completa_permitir">Abrir ajustes</string>
+
+    <!-- Pestañas -->
+    <string name="pestania_panel">Cocina</string>
+    <string name="pestania_camara">Cámara</string>
+    <string name="pestania_vivo">En vivo</string>
+    <string name="pestania_configuracion">Ajustes</string>
+    <string name="pestania_horarios">Horarios</string>
+
+    <!-- Horarios -->
+    <string name="horarios_explicacion">El equipo corta el suministro a la hora programada si en ese momento está vigilando sin alertas. Hora del equipo (Ciudad de México).</string>
+    <string name="horarios_sin_hora_titulo">Los horarios no se ejecutarán</string>
+    <string name="horarios_sin_hora_texto">El equipo todavía no tiene la hora. La obtiene por internet solo cuando está conectado a la red de la casa.</string>
+    <string name="horarios_ir_wifi">Configurar el Wi-Fi de la casa</string>
+    <string name="horarios_cuenta">%1$d de %2$d horarios</string>
+    <string name="horarios_vacio">No hay horarios programados.</string>
+    <string name="horarios_ayuda_borrar">Toca un horario para editarlo. Mantenlo presionado para borrarlo.</string>
+    <string name="horarios_error_sin_espacio">Ya hay 8 horarios guardados. Borra uno para agregar otro.</string>
+    <string name="horarios_error_parametros">El equipo rechazó el horario: algún valor está fuera de rango.</string>
+    <string name="horario_agregar">Agregar horario</string>
+    <string name="horario_nuevo">Nuevo horario</string>
+    <string name="horario_editar">Editar horario</string>
+    <string name="horario_zona">Hora del equipo (Ciudad de México, UTC−6), formato 24 h.</string>
+    <string name="horario_dias">Días</string>
+    <string name="horario_sin_dias">Elige al menos un día.</string>
+    <string name="horario_guardar">Guardar</string>
+    <string name="horario_hora">%1$02d:%2$02d</string>
+    <string name="horario_borrar">Borrar</string>
+    <string name="horario_borrar_titulo">¿Borrar este horario?</string>
+    <string name="horario_borrar_texto">%1$s · %2$s. El equipo dejará de cerrar el suministro a esa hora.</string>
+    <string name="dias_todos">Todos los días</string>
+    <string name="dias_lunes_a_viernes">Lun a Vie</string>
+    <string name="dias_fin_de_semana">Sáb y Dom</string>
+    <string name="dia_lunes">Lun</string>
+    <string name="dia_martes">Mar</string>
+    <string name="dia_miercoles">Mié</string>
+    <string name="dia_jueves">Jue</string>
+    <string name="dia_viernes">Vie</string>
+    <string name="dia_sabado">Sáb</string>
+    <string name="dia_domingo">Dom</string>
+
+    <!-- Configuración -->
+    <string name="incompatible_titulo">La app y el equipo no son compatibles</string>
+    <string name="incompatible_texto">El equipo usa la versión %1$d del protocolo y esta app entiende la versión %2$d. Algunas funciones pueden fallar: actualiza la app o el firmware.</string>
+    <string name="config_wifi_titulo">Wi-Fi de la casa</string>
+    <string name="config_wifi_explicacion">El equipo guarda la red y se conecta a ella; la red SATCP sigue activa. Así puedes usar la app desde la red de la casa.</string>
+    <string name="config_wifi_ssid">Nombre de la red</string>
+    <string name="config_wifi_clave">Contraseña</string>
+    <string name="config_wifi_abierta">Red abierta (sin contraseña)</string>
+    <string name="config_contador">%1$d / %2$d</string>
+    <string name="config_mostrar">Mostrar</string>
+    <string name="config_ocultar">Ocultar</string>
+    <string name="config_wifi_guardar">Guardar y conectar</string>
+    <string name="config_wifi_listo">Conectando; la IP llegará en el evento de estado.</string>
+    <string name="config_wifi_error">El equipo no pudo guardar la red: el nombre o la contraseña son demasiado largos.</string>
+    <string name="config_wifi_ip">IP del equipo en la red de la casa: %1$s</string>
+    <string name="config_wifi_sin_ip">El equipo todavía no tiene IP en la red de la casa.</string>
+    <string name="config_wifi_sin_ip_tras_espera">El equipo guardó la red «%1$s», pero no logró conectarse. Revisa que sea de 2.4 GHz (en un hotspot, elige «Banda AP: 2.4 GHz»), que el nombre esté escrito igual y que la contraseña sea correcta. El equipo seguirá reintentando solo.</string>
+    <string name="config_bateria_titulo">Optimización de batería</string>
+    <string name="config_bateria_explicacion">Sin esta exclusión, las alertas pueden no llegar con la pantalla apagada, porque Android puede cortar la conexión con el equipo para ahorrar batería.</string>
+    <string name="config_bateria_excluir">Excluir la app</string>
+    <string name="config_bateria_excluida">La app está excluida: Android no le aplica la optimización de batería.</string>
+    <string name="config_redes_titulo">Redes guardadas</string>
+    <string name="config_redes_explicacion">Android no deja leer las redes guardadas del teléfono. Aquí aparecen las que configures desde esta app, para enviarlas de nuevo al equipo con un toque. Se guardan cifradas en este teléfono.</string>
+    <string name="config_redes_abierta">Red abierta</string>
+    <string name="config_redes_usar">Conectar</string>
+    <string name="config_redes_borrar">Borrar</string>
+    <string name="config_redes_borrar_titulo">¿Borrar %1$s?</string>
+    <string name="config_redes_borrar_texto">La app olvidará esta red y su contraseña. El equipo no cambia de red.</string>
+    <string name="config_redes_cancelar">Cancelar</string>
+    <string name="config_info_titulo">Información del equipo</string>
+    <string name="config_info_sin_datos">Todavía no llegó la información del equipo.</string>
+    <string name="config_info_actualizar">Actualizar</string>
+    <string name="config_info_dispositivo">Dispositivo</string>
+    <string name="config_info_firmware">Firmware</string>
+    <string name="config_info_protocolo">Versión de protocolo</string>
+    <string name="config_info_mac">MAC</string>
+    <string name="config_info_clases">Clases del modelo</string>
+    <string name="config_info_ble">Nombre Bluetooth</string>
+    <string name="config_info_red_propia">Red propia</string>
+    <string name="config_info_red_casa">IP en la red de la casa</string>
+
+    <!-- Vista en vivo -->
+    <string name="vivo_explicacion">Mueve el equipo hasta que todas las hornillas queden dentro de la imagen. La cuadrícula ayuda a centrarlas.</string>
+    <string name="vivo_descripcion">Video en vivo de la cámara del equipo</string>
+    <string name="vivo_conectando">Conectando con la cámara…</string>
+    <string name="vivo_fps">Cuadros por segundo: %1$.0f recibidos, %2$.0f mostrados</string>
+    <string name="vivo_medida">%1$.1f KB/s · leídos %2$d/s · mostrados %3$d/s · descartados %4$d · estado hace %5$s</string>
+    <string name="vivo_medida_segundos">%1$.1f s</string>
+    <string name="vivo_ocupado">Otra persona está mirando el video en vivo. Solo puede haber un espectador a la vez.</string>
+    <string name="vivo_terminado">La transmisión terminó (dura como máximo 10 minutos) o se cortó.</string>
+    <string name="vivo_error">No se pudo abrir el video en vivo.</string>
+    <string name="vivo_sin_wifi">El video en vivo necesita una conexión Wi-Fi abierta con el equipo.</string>
+
+    <!-- Causa real de un fallo de foto o video -->
+    <string name="causa_token_rechazado">Causa: el equipo rechazó el permiso (HTTP 403). Venció o ya se había usado.</string>
+    <string name="causa_ocupado">Causa: el equipo está ocupado (HTTP 503).</string>
+    <string name="causa_no_encontrado">Causa: el equipo no encontró la imagen (HTTP 404).</string>
+    <string name="causa_http">Causa: el equipo respondió con el error HTTP %1$d.</string>
+    <string name="causa_tiempo_agotado">Causa: el equipo no respondió a tiempo. Revisa la señal Wi-Fi.</string>
+    <string name="causa_sin_ruta">Causa: no se pudo llegar al equipo. Puede estar apagado, en otra red o con otra IP.</string>
+    <string name="causa_cleartext">Causa: Android bloqueó la conexión sin cifrar (CLEARTEXT) hacia esa dirección.</string>
+    <string name="causa_otra">Causa desconocida: revisa el registro de la app.</string>
+    <string name="vivo_parar">Parar transmisión</string>
+    <string name="vivo_iniciar">Iniciar transmisión</string>
+    <string name="vivo_parado">Transmisión detenida.</string>
+    <string name="vivo_reanudar">Reanudar</string>
+    <string name="vivo_reintentar">Reintentar</string>
+    <string name="vivo_solo_wifi">El video en vivo requiere Wi-Fi: por Bluetooth es demasiado lento. Aquí puedes ver una foto cada vez que toques «Actualizar» (tarda unos segundos).</string>
+    <string name="vivo_actualizar">Actualizar</string>
+
+    <!-- Cámara -->
+    <string name="camara_tomar_foto">Tomar foto</string>
+    <string name="camara_tomando">Tomando foto…</string>
+    <string name="camara_bluetooth_lento">Por Bluetooth la imagen tarda unos segundos en llegar.</string>
+    <string name="camara_reintentar">Reintentar</string>
+    <string name="camara_descripcion_imagen">Foto tomada por la cámara del equipo</string>
+    <string name="camara_clase">Clase detectada</string>
+    <string name="camara_sin_clasificar">Sin clasificar: el modelo no está cargado en el equipo.</string>
+    <string name="camara_porcentaje">%1$.1f %%</string>
+    <string name="camara_tiempo_inferencia">Tiempo de inferencia: %1$d ms</string>
+    <string name="camara_guardada">Guardada en la SD: %1$s</string>
+    <string name="camara_no_guardada">No se guardó en la SD (no hay tarjeta).</string>
+    <string name="foto_error_camara_ocupada">La cámara sigue ocupada (el sistema la está usando). Inténtalo en unos segundos.</string>
+    <string name="foto_error_camara_no_disponible">La cámara del equipo no se inicializó. Revisa el hardware.</string>
+    <string name="foto_error_rechazada">El equipo no pudo tomar la foto.</string>
+    <string name="aviso_imagen_crc">La imagen llegó dañada (el CRC no coincide) y se descartó.</string>
+    <string name="aviso_imagen_alterada">La imagen no se pudo descifrar: está alterada y se descartó.</string>
+    <string name="aviso_imagen_incompleta">La imagen llegó incompleta y se descartó.</string>
+    <string name="aviso_imagen_interrumpida">Se interrumpió el envío de la imagen.</string>
+    <string name="aviso_imagen_sin_suscripcion">El equipo no pudo enviar la imagen: las notificaciones de imagen no están activas. Reconecta por Bluetooth.</string>
+    <string name="aviso_imagen_sin_terminar">La imagen no terminó de llegar a tiempo.</string>
+    <string name="aviso_imagen_no_disponible">El equipo no tuvo memoria para enviar la imagen. La clasificación sí es válida.</string>
+    <string name="aviso_imagen_no_encontrada">El equipo todavía no tiene ninguna foto guardada.</string>
+    <string name="aviso_imagen_descarga_fallida">No se pudo descargar la imagen.</string>
+    <string name="aviso_imagen_ilegible">La imagen llegó pero no se pudo mostrar.</string>
+    <string name="aviso_imagen_no_solicitada">Sin imagen.</string>
+
+    <string name="vision_fuego">fuego</string>
+    <string name="vision_humo">humo</string>
+    <string name="vision_error">falla de la cámara</string>
+    <string name="vision_sin_riesgo">sin riesgo visible</string>
+    <string name="vision_desconocida">motivo desconocido</string>
+</resources>
