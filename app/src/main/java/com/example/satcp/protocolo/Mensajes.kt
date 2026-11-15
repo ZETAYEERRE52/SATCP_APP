@@ -73,6 +73,9 @@ object CodigosError {
     const val NO_AUTORIZADO = "no_autorizado"
     const val SIN_SESION = "sin_sesion"
     const val REPETIDO = "repetido"
+
+    /** `calibrar_estufa` fuera de `MONITOREO`, con una anomalía activa o con la estufa aún caliente. */
+    const val NO_DISPONIBLE = "no_disponible"
 }
 
 // ---------- Evento `estado` (§5) ----------
@@ -85,7 +88,12 @@ data class DatosEstado(
     val alerta: Alerta? = null,
     val valvula: Valvula = Valvula(),
     val conexion: ConexionEstado = ConexionEstado(),
-)
+    /** Calibración con la estufa (firmware 2.1.0). Un firmware anterior no lo envía: queda el umbral de fábrica. */
+    val estufa: Estufa = Estufa(),
+) {
+    /** Temperatura a partir de la cual el equipo inicia una revisión, o `null` sin referencia. */
+    val umbralRevision: Double? get() = temperatura.lineaBase?.plus(estufa.umbralIncremento)
+}
 
 @Serializable
 data class Valvula(
@@ -110,6 +118,9 @@ enum class Fase {
     CIERRE_AUTOMATICO,
     BLOQUEADO,
     AUTOCALIBRACION,
+
+    /** El usuario calibra el umbral con una parrilla encendida (hasta unos 3 min 10 s). */
+    CALIBRACION_ESTUFA,
     DESCONOCIDA,
 }
 
@@ -120,8 +131,65 @@ data class Temperatura(
     val medida: Double? = null,
     val estimada: Double? = null,
     val sensor: Double? = null,
+    /**
+     * Temperatura ambiente de referencia: estable 3 min, de 24 °C o menos y verificada con la cámara.
+     * `null` mientras el equipo aún no la tiene.
+     */
     @SerialName("linea_base") val lineaBase: Double? = null,
 )
+
+/** Bloque `estufa` del evento `estado`: el umbral de "estufa encendida" y la calibración en curso. */
+@Serializable
+data class Estufa(
+    /** Subida (°C) sobre la referencia que se considera estufa encendida e inicia una revisión. */
+    @SerialName("umbral_incremento") val umbralIncremento: Double = UMBRAL_FABRICA_C,
+    /** `false`: el umbral es el de fábrica. */
+    val calibrado: Boolean = false,
+    /** `null` si no hay calibración en curso. */
+    val calibracion: ProgresoCalibracion? = null,
+    /** Cómo terminó la última calibración, o `null` si nunca se hizo. */
+    @SerialName("ultimo_resultado") val ultimoResultado: ResultadoCalibracion? = null,
+) {
+    companion object {
+        const val UMBRAL_FABRICA_C = 4.0
+    }
+}
+
+@Serializable
+data class ProgresoCalibracion(
+    val paso: PasoCalibracion = PasoCalibracion.DESCONOCIDO,
+    @SerialName("segundos_restantes") val segundosRestantes: Int? = null,
+    /** Temperatura con la estufa apagada; `null` durante el paso `referencia`. */
+    val referencia: Double? = null,
+    /** Subida medida hasta ahora (°C). */
+    val incremento: Double? = null,
+)
+
+@Serializable
+enum class PasoCalibracion {
+    /** 10 s midiendo la temperatura con la estufa apagada. */
+    @SerialName("referencia") REFERENCIA,
+
+    /** Hasta 180 s con una parrilla al mínimo. */
+    @SerialName("midiendo") MIDIENDO,
+    DESCONOCIDO,
+}
+
+/** Un valor que esta versión no conoce se lee como `null` (ver `coerceInputValues`). */
+@Serializable
+enum class ResultadoCalibracion {
+    /** El nuevo umbral ya está en `umbral_incremento`. */
+    @SerialName("ok") OK,
+
+    /** Subió menos de 1 °C: se conserva el umbral anterior. */
+    @SerialName("sin_calor") SIN_CALOR,
+
+    /** Hubo un `cerrar` o una temperatura crítica. */
+    @SerialName("cancelada") CANCELADA,
+
+    /** El sensor no dio lecturas. */
+    @SerialName("error_sensor") ERROR_SENSOR,
+}
 
 @Serializable
 data class Presencia(

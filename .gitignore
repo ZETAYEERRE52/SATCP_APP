@@ -13,6 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+/docs
 
 # Kotlin y archivos locales
 .kotlin

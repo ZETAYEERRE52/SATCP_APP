@@ -56,6 +56,12 @@ sealed class Comando(val nombre: String) {
     /** Pide permiso para abrir el video en vivo. Solo por Wi-Fi. */
     data object Vivo : Comando("vivo")
 
+    /**
+     * Inicia la calibración con la estufa (firmware 2.1.0). Error `no_disponible` fuera de `MONITOREO`,
+     * con una anomalía activa o con la estufa aún caliente.
+     */
+    data object CalibrarEstufa : Comando("calibrar_estufa")
+
     /** Cambia la clave del equipo. No es `data class` para que su texto nunca muestre la clave. */
     class CambiarClave(val claveNueva: String) : Comando("cambiar_clave") {
         init {

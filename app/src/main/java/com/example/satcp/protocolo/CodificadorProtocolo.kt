@@ -56,7 +56,7 @@ object CodificadorProtocolo {
                 is Comando.HorarioBorrar -> put("indice", comando.indice)
                 is Comando.CambiarClave -> put("clave_nueva", comando.claveNueva)
                 Comando.Info, Comando.Estado, Comando.Responder, Comando.Rearmar,
-                Comando.Cerrar, Comando.Horarios, Comando.Vivo -> Unit
+                Comando.Cerrar, Comando.Horarios, Comando.Vivo, Comando.CalibrarEstufa -> Unit
             }
         }
         val texto = objeto.toString()

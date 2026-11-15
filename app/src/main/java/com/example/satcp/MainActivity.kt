@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.satcp.servicio.EstadoConexion
 import com.example.satcp.transporte.TipoTransporte
+import com.example.satcp.ui.calibracion.PantallaCalibracion
 import com.example.satcp.ui.camara.PantallaCamara
 import com.example.satcp.ui.clave.PantallaClave
 import com.example.satcp.ui.conexion.PantallaConexion
@@ -69,6 +70,7 @@ private fun AppSatcp() {
     val conectado = conexion != EstadoConexion.Desconectado && !pedirClave
     val transporte by app.cliente.transporte.collectAsStateWithLifecycle()
     var pestania by rememberSaveable { mutableStateOf(Pestania.PANEL) }
+    var calibrando by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -117,7 +119,11 @@ private fun AppSatcp() {
                 Pestania.CAMARA -> PantallaCamara(modificador)
                 Pestania.VIVO -> PantallaVivo(porBluetooth = transporte?.tipo == TipoTransporte.BLE, modifier = modificador)
                 Pestania.HORARIOS -> PantallaHorarios(irAConfiguracion = { pestania = Pestania.CONFIGURACION }, modifier = modificador)
-                Pestania.CONFIGURACION -> PantallaConfiguracion(modificador)
+                Pestania.CONFIGURACION -> if (calibrando) {
+                    PantallaCalibracion(volver = { calibrando = false }, modifier = modificador)
+                } else {
+                    PantallaConfiguracion(abrirCalibracion = { calibrando = true }, modifier = modificador)
+                }
             }
         }
     }

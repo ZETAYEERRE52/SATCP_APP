@@ -236,6 +236,23 @@ class ClienteSatcp(
         enviarEnHilo(comando, tiempoEsperaMs)
     }
 
+    /**
+     * Pide `estado` y publica sus `datos` en [estado], igual que un evento. Sirve para ver más seguido
+     * el avance de la calibración con la estufa, que el equipo solo informa cada 5 s.
+     */
+    suspend fun pedirEstado() {
+        val respuesta = enviar(Comando.Estado)
+        val datos = respuesta.datos ?: return
+        if (!respuesta.ok) return
+        val decodificado = try {
+            CodificadorProtocolo.json.decodeFromJsonElement(DatosEstado.serializer(), datos)
+        } catch (e: IllegalArgumentException) { // incluye SerializationException
+            Registro.aviso("La respuesta de estado no se pudo leer: ${e.message}")
+            return
+        }
+        withContext(hilo) { if (_transporte.value != null) _estado.value = decodificado }
+    }
+
     private suspend fun enviarEnHilo(comando: Comando, tiempoEsperaMs: Long): Respuesta {
         // Durante una foto por Bluetooth el comando espera a que termine la transferencia.
         if (_transporte.value?.tipo == TipoTransporte.BLE) ocupadoPorImagen.first { !it }

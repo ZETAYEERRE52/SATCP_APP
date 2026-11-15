@@ -47,12 +47,18 @@ import com.example.satcp.R
 import com.example.satcp.protocolo.Comando
 import com.example.satcp.protocolo.DatosInfo
 import com.example.satcp.protocolo.VERSION_PROTOCOLO
+import com.example.satcp.protocolo.Estufa
 import com.example.satcp.servicio.RedGuardada
+import com.example.satcp.ui.calibracion.textoUmbralEstufa
 import com.example.satcp.ui.comun.estaExcluidaDeBateria
 import com.example.satcp.ui.comun.pedirExclusionBateria
 
 @Composable
-fun PantallaConfiguracion(modifier: Modifier = Modifier, vm: ConfiguracionViewModel = viewModel()) {
+fun PantallaConfiguracion(
+    abrirCalibracion: () -> Unit,
+    modifier: Modifier = Modifier,
+    vm: ConfiguracionViewModel = viewModel(),
+) {
     val ui by vm.ui.collectAsStateWithLifecycle()
 
     Column(
@@ -66,6 +72,7 @@ fun PantallaConfiguracion(modifier: Modifier = Modifier, vm: ConfiguracionViewMo
         TarjetaBateria()
         TarjetaRedesGuardadas(ui, vm)
         TarjetaWifiCasa(ui, vm)
+        TarjetaCalibracionEstufa(ui.estufa, abrirCalibracion)
         TarjetaCambioClave(ui.cambioClave, vm)
         TarjetaInfo(ui, vm::actualizarInfo)
     }
@@ -287,6 +294,16 @@ private fun TarjetaCambioClave(formulario: FormularioClave, vm: ConfiguracionVie
                 color = if (resultado == ResultadoCambioClave.LISTA) Color.Unspecified else MaterialTheme.colorScheme.error,
             )
         }
+    }
+}
+
+@Composable
+private fun TarjetaCalibracionEstufa(estufa: Estufa?, abrir: () -> Unit) {
+    Tarjeta {
+        Text(stringResource(R.string.calibracion_titulo), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.config_calibracion_explicacion))
+        Text(stringResource(R.string.panel_umbral_estufa, textoUmbralEstufa(estufa)), fontWeight = FontWeight.Medium)
+        Button(onClick = abrir) { Text(stringResource(R.string.config_calibracion_abrir)) }
     }
 }
 

@@ -9,6 +9,7 @@ import com.example.satcp.protocolo.CodigosError
 import com.example.satcp.protocolo.Comando
 import com.example.satcp.protocolo.ConexionCerrada
 import com.example.satcp.protocolo.DatosInfo
+import com.example.satcp.protocolo.Estufa
 import com.example.satcp.protocolo.TiempoEsperaAgotado
 import com.example.satcp.protocolo.VERSION_PROTOCOLO
 import com.example.satcp.seguridad.Criptografia
@@ -76,6 +77,8 @@ data class UiConfiguracion(
     /** `conexion.wifi_casa_ip` del último evento `estado`. */
     val ipCasa: String? = null,
     val redesGuardadas: List<RedGuardada> = emptyList(),
+    /** Bloque `estufa` del último `estado`, o `null` si aún no llega. */
+    val estufa: Estufa? = null,
 ) {
     val incompatible: Boolean get() = info?.protocolo != null && info.protocolo != VERSION_PROTOCOLO
 }
@@ -98,7 +101,7 @@ class ConfiguracionViewModel(aplicacion: Application) : AndroidViewModel(aplicac
             estadoInfo,
             almacenRedes.redes,
         ) { (wifi, clave), info, estado, (actualizando, error), redes ->
-            UiConfiguracion(wifi, clave, info, actualizando, error, estado?.conexion?.wifiCasaIp, redes)
+            UiConfiguracion(wifi, clave, info, actualizando, error, estado?.conexion?.wifiCasaIp, redes, estado?.estufa)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiConfiguracion())
 
     fun cambiarClaveNueva(texto: String) =

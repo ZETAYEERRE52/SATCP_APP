@@ -51,7 +51,44 @@
     <string name="estado_perdida_corto">Conexión perdida, reconectando…</string>
     <string name="estado_perdida_no_encontrado">No se encuentra el equipo. Revisa que esté encendido y en la misma red que el teléfono, o conéctate por Bluetooth.</string>
     <string name="estado_perdida_interrumpida">Conexión perdida: se interrumpió la comunicación con el equipo</string>
-    <string name="panel_temperatura_detalle">Sensor interno: %1$s · Línea base: %2$s</string>
+    <string name="panel_temperatura_detalle">Sensor interno: %1$s</string>
+    <string name="panel_referencia">Temperatura ambiente de referencia: %1$s</string>
+    <string name="panel_revision_si_supera">Revisión si supera: %1$s</string>
+    <string name="panel_referencia_calculando">Calculando referencia…</string>
+    <string name="panel_umbral_estufa">Umbral de estufa encendida: %1$s</string>
+
+    <!-- Calibración con la estufa (firmware 2.1.0) -->
+    <string name="estufa_umbral_valor">%1$s (%2$s)</string>
+    <string name="estufa_calibrado">calibrado</string>
+    <string name="estufa_de_fabrica">de fábrica</string>
+    <string name="config_calibracion_explicacion">Mide cuánto sube la temperatura con una parrilla al mínimo. Una subida así se considera estufa encendida y el equipo la revisa con el radar y la cámara.</string>
+    <string name="config_calibracion_abrir">Calibrar</string>
+    <string name="calibracion_titulo">Calibrar con la estufa</string>
+    <string name="calibracion_explicacion">Con la estufa apagada, toca Comenzar. Cuando se te indique, enciende UNA parrilla al mínimo y quédate cerca.</string>
+    <string name="calibracion_umbral_actual">Umbral actual</string>
+    <string name="calibracion_solo_monitoreo">Solo se puede calibrar en monitoreo, sin anomalías y con la estufa fría. Ahora: %1$s.</string>
+    <string name="calibracion_comenzar">Comenzar</string>
+    <string name="calibracion_enviando">Iniciando la calibración…</string>
+    <string name="calibracion_preparando">Preparando la calibración. Deja la estufa apagada…</string>
+    <string name="calibracion_referencia">Midiendo la temperatura inicial… (%1$d s)</string>
+    <string name="calibracion_referencia_sin_tiempo">Midiendo la temperatura inicial…</string>
+    <string name="calibracion_referencia_aviso">Deja la estufa apagada.</string>
+    <string name="calibracion_enciende">Enciende una parrilla al MÍNIMO ahora</string>
+    <string name="calibracion_subida">+%1$.1f °C sobre %2$s</string>
+    <string name="calibracion_tiempo_restante">Tiempo restante: %1$d:%2$02d</string>
+    <string name="calibracion_puede_terminar_antes">Puede terminar antes si la temperatura deja de subir.</string>
+    <string name="calibracion_salir_aviso">Si sales de esta pantalla, el equipo termina la calibración solo. Al volver verás el avance.</string>
+    <string name="calibracion_ok">Listo. Una subida de %1$s se considerará estufa encendida.</string>
+    <string name="calibracion_ok_apagar">Ya puedes apagar la parrilla.</string>
+    <string name="calibracion_listo">Listo</string>
+    <string name="calibracion_sin_calor">No se detectó calor. Revisa que la parrilla esté encendida y que el sensor apunte a la estufa. Se conserva el umbral anterior.</string>
+    <string name="calibracion_cancelada">La calibración se canceló porque se cerró el suministro o hubo una temperatura crítica. Se conserva el umbral anterior.</string>
+    <string name="calibracion_error_sensor">El sensor de temperatura no dio lecturas. Revisa el sensor e inténtalo de nuevo.</string>
+    <string name="calibracion_sin_resultado">La calibración terminó, pero el equipo no informó el resultado.</string>
+    <string name="calibracion_reintentar">Reintentar</string>
+    <string name="calibracion_volver">Volver</string>
+    <string name="calibracion_no_disponible">El equipo no puede calibrar ahora: debe estar en monitoreo, sin anomalías y con la estufa fría.</string>
+    <string name="calibracion_rechazada">El equipo no aceptó la calibración.</string>
     <string name="canal_avisos">Avisos de conexión</string>
     <string name="canal_avisos_descripcion">Avisa si se pierde la conexión con el equipo, porque sin ella no llegan alertas.</string>
     <string name="notificacion_sin_conexion_titulo">Sin conexión con el equipo</string>
@@ -67,7 +104,7 @@
     <string name="panel_fase">Fase del sistema</string>
     <string name="panel_temperatura">Temperatura</string>
     <string name="panel_temperatura_medida">Medida</string>
-    <string name="panel_temperatura_estimada">Estimada del recipiente</string>
+    <string name="panel_temperatura_estimada">Estimada del área</string>
     <string name="panel_presencia">Presencia (radar)</string>
     <string name="panel_sensor_sin_respuesta">Sensor de temperatura sin respuesta: la detección depende solo de la cámara.</string>
     <string name="panel_valvula">Válvula de gas</string>
@@ -111,6 +148,7 @@
     <string name="fase_bloqueado">Suministro cortado: hay que rearmar</string>
     <string name="fase_autocalibracion">Calibrando</string>
     <string name="fase_desconocida">Fase desconocida</string>
+    <string name="fase_calibracion_estufa">Calibrando con la estufa…</string>
 
     <string name="presencia_nadie">Nadie en la cocina</string>
     <string name="presencia_en_movimiento">Alguien en movimiento</string>

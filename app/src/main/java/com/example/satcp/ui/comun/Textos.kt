@@ -27,6 +27,7 @@ fun recursoFase(fase: Fase): Int = when (fase) {
     Fase.CIERRE_AUTOMATICO -> R.string.fase_cierre_automatico
     Fase.BLOQUEADO -> R.string.fase_bloqueado
     Fase.AUTOCALIBRACION -> R.string.fase_autocalibracion
+    Fase.CALIBRACION_ESTUFA -> R.string.fase_calibracion_estufa
     Fase.DESCONOCIDA -> R.string.fase_desconocida
 }
 

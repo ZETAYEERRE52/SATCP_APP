@@ -44,6 +44,7 @@ import com.example.satcp.ui.comun.textoPresencia
 import com.example.satcp.ui.comun.textoTemperatura
 import com.example.satcp.ui.comun.textoTransporte
 import com.example.satcp.ui.comun.textoMotivo
+import com.example.satcp.ui.calibracion.textoUmbralEstufa
 import kotlinx.coroutines.delay
 
 @Composable
@@ -158,12 +159,26 @@ private fun ContenidoEstado(estado: DatosEstado, uiAlerta: UiAlerta, alertaVm: A
             Valor(stringResource(R.string.panel_temperatura_medida), textoTemperatura(estado.temperatura.medida))
             Valor(stringResource(R.string.panel_temperatura_estimada), textoTemperatura(estado.temperatura.estimada))
         }
+        val referencia = estado.temperatura.lineaBase
+        val umbral = estado.umbralRevision
+        if (referencia != null && umbral != null) {
+            Text(
+                stringResource(R.string.panel_referencia, textoTemperatura(referencia)),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                stringResource(R.string.panel_revision_si_supera, textoTemperatura(umbral)),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        } else {
+            Text(stringResource(R.string.panel_referencia_calculando), style = MaterialTheme.typography.bodyMedium)
+        }
         Text(
-            stringResource(
-                R.string.panel_temperatura_detalle,
-                textoTemperatura(estado.temperatura.sensor),
-                textoTemperatura(estado.temperatura.lineaBase),
-            ),
+            stringResource(R.string.panel_umbral_estufa, textoUmbralEstufa(estado.estufa)),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Text(
+            stringResource(R.string.panel_temperatura_detalle, textoTemperatura(estado.temperatura.sensor)),
             style = MaterialTheme.typography.bodySmall,
         )
     }
@@ -185,7 +200,7 @@ private fun ContenidoEstado(estado: DatosEstado, uiAlerta: UiAlerta, alertaVm: A
 @Composable
 private fun colorFase(fase: Fase): Color = when (fase) {
     Fase.ALERTA_USUARIO, Fase.CIERRE_AUTOMATICO, Fase.BLOQUEADO -> MaterialTheme.colorScheme.errorContainer
-    Fase.VALIDAR_PRESENCIA, Fase.DETECCION_VISUAL -> MaterialTheme.colorScheme.tertiaryContainer
+    Fase.VALIDAR_PRESENCIA, Fase.DETECCION_VISUAL, Fase.CALIBRACION_ESTUFA -> MaterialTheme.colorScheme.tertiaryContainer
     else -> MaterialTheme.colorScheme.secondaryContainer
 }
 
