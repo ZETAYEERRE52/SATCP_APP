@@ -33,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.satcp.R
 import com.example.satcp.servicio.ResultadoAccion
 import com.example.satcp.ui.comun.textoFase
+import com.example.satcp.ui.comun.textoCausaAlerta
 import com.example.satcp.ui.comun.textoMotivo
 
 /** Pantalla completa que abre la notificación de alerta, también sobre la pantalla de bloqueo. */
@@ -68,6 +69,7 @@ fun PantallaAlerta(cerrar: () -> Unit, vm: AlertaViewModel = viewModel()) {
                 textAlign = TextAlign.Center,
             )
             Text(textoMotivo(alerta), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+            Text(textoCausaAlerta(alerta, ui.estado), textAlign = TextAlign.Center)
             Text(textoFase(ui.estado!!.fase), textAlign = TextAlign.Center)
             AccionesAlerta(ui, vm, grande = true)
             OutlinedButton(onClick = cerrar) { Text(stringResource(R.string.cerrar)) }

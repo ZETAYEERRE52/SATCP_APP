@@ -4,13 +4,13 @@ import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.Build
+import com.example.satcp.Registro
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeoutOrNull
 import java.net.Inet4Address
 import kotlin.coroutines.resume
 
@@ -69,24 +69,11 @@ class DescubridorNsd(contexto: Context) {
         }
     }
 
-    /**
-     * Busca durante [esperaMs] y devuelve el equipo solo si hay exactamente uno: con varios SATCP en
-     * la red no se puede saber cuál era el del usuario, así que no se cambia de equipo por él.
-     */
-    suspend fun buscarUnico(esperaMs: Long = ESPERA_BUSQUEDA_MS): ServicioSatcp? {
-        var vistos = emptyList<ServicioSatcp>()
-        try {
-            withTimeoutOrNull(esperaMs) { descubrir().collect { vistos = it } }
-        } catch (_: DescubrimientoFallido) {
-            return null
-        }
-        return vistos.singleOrNull()
-    }
-
     @Suppress("DEPRECATION") // resolveService y host siguen funcionando; la API nueva exige Android 14.
     private suspend fun resolver(info: NsdServiceInfo): ServicioSatcp? = suspendCancellableCoroutine { continuacion ->
         nsd.resolveService(info, object : NsdManager.ResolveListener {
             override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
+                Registro.conexion("mDNS: no se pudo resolver ${serviceInfo.serviceName} (código $errorCode)")
                 continuacion.resume(null)
             }
 
@@ -105,6 +92,5 @@ class DescubridorNsd(contexto: Context) {
 
     private companion object {
         const val TIPO_SERVICIO = "_satcp._tcp"
-        const val ESPERA_BUSQUEDA_MS = 4_000L
     }
 }

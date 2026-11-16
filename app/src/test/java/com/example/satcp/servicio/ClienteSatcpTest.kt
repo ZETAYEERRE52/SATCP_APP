@@ -175,7 +175,7 @@ class ClienteSatcpTest {
     }
 
     @Test
-    fun laEsperaDeReconexionCreceHasta30Segundos() = runTest {
+    fun laEsperaDeReconexionCreceHasta15Segundos() = runTest {
         val cliente = clienteDePrueba()
         val transporte = TransporteSimulado().apply { fallarAlConectar = true }
         cliente.conectar(transporte)
@@ -189,7 +189,39 @@ class ClienteSatcpTest {
             advanceTimeBy(perdida.reintentoEnMs + 1)
             runCurrent()
         }
-        assertEquals(listOf(1_000L, 2_000L, 4_000L, 8_000L, 16_000L, 30_000L, 30_000L), esperas)
+        assertEquals(listOf(1_000L, 2_000L, 4_000L, 8_000L, 15_000L, 15_000L, 15_000L), esperas)
+    }
+
+    @Test
+    fun reintentarAhoraCortaLaEsperaYVuelveA1Segundo() = runTest {
+        val cliente = clienteDePrueba()
+        val transporte = TransporteSimulado().apply { fallarAlConectar = true }
+        cliente.conectar(transporte)
+        runCurrent()
+        // Tres fallos seguidos: la espera ya es de 8 s.
+        repeat(3) {
+            advanceTimeBy((cliente.estadoConexion.value as EstadoConexion.Perdida).reintentoEnMs + 1)
+            runCurrent()
+        }
+        assertEquals(8_000L, (cliente.estadoConexion.value as EstadoConexion.Perdida).reintentoEnMs)
+        val antes = transporte.conexiones
+
+        cliente.reintentarAhora()
+        runCurrent()
+
+        assertEquals(antes + 1, transporte.conexiones)
+        assertEquals(1_000L, (cliente.estadoConexion.value as EstadoConexion.Perdida).reintentoEnMs)
+    }
+
+    @Test
+    fun reintentarAhoraConConexionAbiertaNoHaceNada() = runTest {
+        val (cliente, transporte) = conectado()
+        transporte.recibir(estado("MONITOREO"))
+        runCurrent()
+        cliente.reintentarAhora()
+        runCurrent()
+        assertEquals(EstadoConexion.Conectado, cliente.estadoConexion.value)
+        assertEquals(1, transporte.conexiones)
     }
 
     @Test

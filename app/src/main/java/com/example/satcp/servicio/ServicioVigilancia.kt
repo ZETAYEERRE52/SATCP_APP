@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.PowerManager
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.ServiceCompat
@@ -34,6 +35,11 @@ class ServicioVigilancia : Service() {
     private val alcance = MainScope()
     private var observacion: Job? = null
     private lateinit var notificador: NotificadorAlertas
+    private val candadoReintento by lazy {
+        getSystemService(PowerManager::class.java)
+            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "satcp:reintento")
+            .apply { setReferenceCounted(false) }
+    }
 
     private val cliente get() = (application as SatcpApp).cliente
 
@@ -86,6 +92,19 @@ class ServicioVigilancia : Service() {
                 }
             }
         }
+        alcance.launch {
+            // Con la pantalla apagada la CPU duerme y la pausa entre intentos se estira a minutos.
+            // Mientras se reintenta se mantiene despierta, con un tope por cada corte.
+            cliente.estadoConexion.map { it is EstadoConexion.Perdida || it is EstadoConexion.Conectando }
+                .distinctUntilChanged()
+                .collect { reintentando ->
+                    if (reintentando) {
+                        candadoReintento.acquire(TOPE_CANDADO_REINTENTO_MS)
+                    } else if (candadoReintento.isHeld) {
+                        candadoReintento.release()
+                    }
+                }
+        }
         cliente.estadoConexion.collect { conexion ->
             if (conexion == EstadoConexion.Desconectado) detener() else notificador.actualizarVigilancia(conexion)
         }
@@ -93,6 +112,7 @@ class ServicioVigilancia : Service() {
 
     private fun detener() {
         alcance.coroutineContext.cancelChildren()
+        if (candadoReintento.isHeld) candadoReintento.release()
         notificador.quitarAlertas()
         notificador.quitarAvisoSinConexion()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
@@ -108,6 +128,9 @@ class ServicioVigilancia : Service() {
         private const val ACCION_DETENER = "com.example.satcp.DETENER"
         private const val ETIQUETA = "ServicioVigilancia"
         private const val ESPERA_AVISO_SIN_CONEXION_MS = 60_000L
+
+        /** Tiempo máximo con la CPU despierta por cada corte de conexión. */
+        private const val TOPE_CANDADO_REINTENTO_MS = 2 * 60_000L
 
         /** Lo llama la interfaz al conectar, con la app en primer plano. */
         fun iniciar(contexto: Context) {

@@ -3,7 +3,10 @@ package com.example.satcp.servicio
 import android.content.Context
 import androidx.core.content.edit
 
-/** Cómo se conectó el usuario la última vez, para ofrecer reconectar igual. */
+/**
+ * El modo de conexión configurado: el que se usa al abrir la app y al reintentar. Se elige en la
+ * primera configuración (por Bluetooth) o en Ajustes. La app no cambia sola a otro modo.
+ */
 sealed interface UltimaConexion {
     data object RedPropia : UltimaConexion
     data class RedCasa(val ip: String, val puerto: Int) : UltimaConexion
@@ -42,6 +45,19 @@ class Preferencias(contexto: Context) {
             }
         }
 
+    /** El último equipo conectado por Bluetooth, aunque el modo actual sea Wi-Fi. */
+    var equipoBle: UltimaConexion.Bluetooth?
+        get() = prefs.getString(CLAVE_EQUIPO_BLE, null)?.let { UltimaConexion.Bluetooth(it, prefs.getString(CLAVE_EQUIPO_BLE_NOMBRE, null)) }
+        set(valor) = prefs.edit {
+            if (valor == null) {
+                remove(CLAVE_EQUIPO_BLE)
+                remove(CLAVE_EQUIPO_BLE_NOMBRE)
+            } else {
+                putString(CLAVE_EQUIPO_BLE, valor.direccion)
+                putString(CLAVE_EQUIPO_BLE_NOMBRE, valor.nombre)
+            }
+        }
+
     /**
      * La IP en la red de la casa que el propio equipo informa en `conexion.wifi_casa_ip`. Sirve de
      * respaldo si mDNS no lo encuentra, por ejemplo cuando el router le cambió la IP.
@@ -52,6 +68,8 @@ class Preferencias(contexto: Context) {
 
     private companion object {
         const val CLAVE_IP_INFORMADA = "ip_casa_informada"
+        const val CLAVE_EQUIPO_BLE = "equipo_ble_direccion"
+        const val CLAVE_EQUIPO_BLE_NOMBRE = "equipo_ble_nombre"
         const val CLAVE_TIPO = "ultima_conexion"
         const val CLAVE_IP = "ip_casa"
         const val CLAVE_PUERTO = "puerto_casa"

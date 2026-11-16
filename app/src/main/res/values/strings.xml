@@ -3,7 +3,7 @@
 
     <!-- Conexión -->
     <string name="conexion_titulo">Conectar con el SATCP</string>
-    <string name="conexion_explicacion">Elige cómo se conecta el teléfono con el equipo de la cocina.</string>
+    <string name="conexion_explicacion">La primera vez, conéctate por Bluetooth. Después, en Ajustes → Cómo se conecta el equipo, elige si usará la red de la casa, la red SATCP o Bluetooth.</string>
     <string name="modo_red_propia">Red SATCP</string>
     <string name="modo_red_casa">Red de la casa</string>
     <string name="modo_bluetooth">Bluetooth</string>
@@ -53,9 +53,72 @@
     <string name="estado_perdida_interrumpida">Conexión perdida: se interrumpió la comunicación con el equipo</string>
     <string name="panel_temperatura_detalle">Sensor interno: %1$s</string>
     <string name="panel_referencia">Temperatura ambiente de referencia: %1$s</string>
-    <string name="panel_revision_si_supera">Revisión si supera: %1$s</string>
+    <string name="panel_revision_si_supera">Revisión si supera %1$s, o si sube %2$s de golpe</string>
     <string name="panel_referencia_calculando">Calculando referencia…</string>
     <string name="panel_umbral_estufa">Umbral de estufa encendida: %1$s</string>
+
+    <!-- Bitácora de eventos -->
+    <string name="bitacora_titulo">Bitácora de eventos</string>
+    <string name="config_bitacora_explicacion">Alertas, cierres, cambios de fase y cortes de conexión, con su causa y las lecturas del momento. Las alertas dudosas aparecen resaltadas.</string>
+    <string name="config_bitacora_abrir">Ver bitácora</string>
+    <string name="bitacora_explicacion">El equipo no guarda historial: la app registra lo que recibe mientras está conectada. Se guardan los últimos 30 días. En rojo, lo que conviene revisar: transiciones que el firmware no debería hacer y alertas que no vienen de superar la referencia.</string>
+    <string name="bitacora_filtro_importantes">Importantes</string>
+    <string name="bitacora_filtro_todo">Todo</string>
+    <string name="bitacora_compartir">Compartir</string>
+    <string name="bitacora_borrar">Borrar</string>
+    <string name="bitacora_borrar_titulo">¿Borrar la bitácora?</string>
+    <string name="bitacora_borrar_texto">Se borran todos los eventos guardados en este teléfono. No se puede deshacer.</string>
+    <string name="bitacora_vacia">Todavía no hay eventos.</string>
+    <string name="bitacora_encabezado_compartir">Bitácora SATCP (de más reciente a más antiguo). [!] = revisar.</string>
+    <string name="bitacora_al_conectar">Conectado: el equipo estaba en «%1$s»</string>
+    <string name="bitacora_cambio_fase">%1$s → %2$s</string>
+    <string name="bitacora_transicion_inesperada">Transición inesperada: %1$s → %2$s</string>
+    <string name="bitacora_transicion_explicacion">La máquina de estados del firmware no permite este cambio, ni saltándose una fase breve.</string>
+    <string name="bitacora_alerta">Alerta</string>
+    <string name="bitacora_cierre_directo">Cierre sin alerta previa</string>
+    <string name="bitacora_suministro_cortado">Suministro cortado</string>
+    <string name="bitacora_alerta_terminada">La alerta terminó sin cierre</string>
+    <string name="bitacora_rearmado">Sistema rearmado</string>
+    <string name="bitacora_valvula_cerrada">Válvula cerrada</string>
+    <string name="bitacora_valvula_abierta">Válvula abierta</string>
+    <string name="bitacora_sensor_falla">El sensor de temperatura dejó de responder</string>
+    <string name="bitacora_sensor_recuperado">El sensor de temperatura volvió a responder</string>
+    <string name="bitacora_referencia">Nueva temperatura ambiente de referencia: %1$s</string>
+    <string name="bitacora_referencia_descartada">Se descartó la temperatura de referencia</string>
+    <string name="bitacora_umbral">Nuevo umbral de estufa encendida: %1$s</string>
+    <string name="bitacora_calibracion">Calibración con la estufa terminada: %1$s</string>
+    <string name="bitacora_calibracion_ok">correcta</string>
+    <string name="bitacora_calibracion_sin_calor">sin calor</string>
+    <string name="bitacora_calibracion_cancelada">cancelada</string>
+    <string name="bitacora_calibracion_error_sensor">error del sensor</string>
+    <string name="bitacora_conexion_perdida">Se perdió la conexión (lo que pase en el equipo no queda registrado)</string>
+    <string name="bitacora_motivo">Motivo: %1$s.</string>
+    <string name="bitacora_motivo_sin_eventos">el equipo dejó de enviar datos 15 s</string>
+    <string name="bitacora_motivo_cerrada">el equipo cerró la conexión</string>
+    <string name="bitacora_motivo_interrumpida">se cortó el WebSocket (incluye ping sin respuesta)</string>
+    <string name="bitacora_motivo_no_encontrado">no se pudo llegar al equipo</string>
+    <string name="bitacora_motivo_sesion">el equipo cerró la sesión cifrada</string>
+    <string name="bitacora_conexion_recuperada">Conexión recuperada</string>
+    <string name="bitacora_desconectado">Desconectado por el usuario</string>
+    <string name="bitacora_lecturas">Medida %1$s · estimada %2$s · referencia %3$s · revisión desde %4$s · presencia: %5$s.</string>
+    <string name="bitacora_sin_sensor">Sensor de temperatura sin respuesta.</string>
+
+    <!-- Modo de conexión -->
+    <string name="config_modo_titulo">Cómo se conecta el equipo</string>
+    <string name="config_modo_explicacion">La app usará siempre este modo: al abrirse se conecta sola y, si se corta, reintenta con el mismo modo. No cambia sola a otro.</string>
+    <string name="config_modo_actual">Ahora: %1$s</string>
+    <string name="config_modo_casa">red de la casa (%1$s)</string>
+    <string name="config_modo_satcp">red SATCP</string>
+    <string name="config_modo_bluetooth">Bluetooth (%1$s)</string>
+    <string name="config_modo_ninguno">sin configurar</string>
+    <string name="config_modo_usar_casa">Usar la red de la casa</string>
+    <string name="config_modo_usar_casa_ip">Usar la red de la casa (%1$s)</string>
+    <string name="config_modo_usar_satcp">Usar la red SATCP</string>
+    <string name="config_modo_usar_bluetooth">Usar Bluetooth</string>
+    <string name="config_modo_en_uso">✓ %1$s</string>
+    <string name="config_modo_casa_sin_ip">Primero conecta el equipo al Wi-Fi de la casa (tarjeta de arriba) y espera a que informe su IP.</string>
+    <string name="config_modo_bluetooth_sin_equipo">Conéctate una vez por Bluetooth desde la pantalla de conexión.</string>
+    <string name="config_modo_aviso">Al cambiar, la app cierra la conexión actual y abre la nueva. Si el nuevo modo no funciona, vuelve aquí o a la pantalla de conexión y elige otro.</string>
 
     <!-- Calibración con la estufa (firmware 2.1.0) -->
     <string name="estufa_umbral_valor">%1$s (%2$s)</string>
@@ -146,7 +209,8 @@
     <string name="fase_alerta_usuario">¡Alerta! Esperando tu respuesta</string>
     <string name="fase_cierre_automatico">Cerrando el suministro</string>
     <string name="fase_bloqueado">Suministro cortado: hay que rearmar</string>
-    <string name="fase_autocalibracion">Calibrando</string>
+    <string name="fase_autocalibracion">Verificando la temperatura ambiente</string>
+    <string name="fase_autocalibracion_explicacion">Es automático: la temperatura lleva 3 minutos estable y el equipo la confirma con la cámara antes de usarla como referencia. No es la calibración con la estufa.</string>
     <string name="fase_desconocida">Fase desconocida</string>
     <string name="fase_calibracion_estufa">Calibrando con la estufa…</string>
 
@@ -168,6 +232,15 @@
     <string name="notificacion_alerta_texto">Motivo: %1$s. El suministro se cortará en %2$d s si nadie responde.</string>
     <string name="notificacion_alerta_sin_cuenta">Motivo: %1$s.</string>
     <string name="notificacion_rearme_titulo">Se cortó el suministro</string>
+    <string name="notificacion_rearme_con_causa">%1$s Revisa la cocina y luego rearma desde la app.</string>
+    <string name="disparo_supero">Causa: la temperatura (%1$s) superó la referencia más el umbral (%2$s).</string>
+    <string name="disparo_subida_brusca">Causa: la temperatura subió de golpe (%1$s), sin llegar a %2$s.</string>
+    <string name="disparo_subida_brusca_sin_referencia">Causa: la temperatura subió de golpe (%1$s); aún no había referencia.</string>
+    <string name="disparo_sensor">Causa: el sensor de temperatura no respondió y el equipo revisó con la cámara.</string>
+    <string name="disparo_verificacion">Causa: verificación automática de la temperatura ambiente (%1$s), sin subida de temperatura.</string>
+    <string name="disparo_desconocido">Causa: el equipo no informó el motivo.</string>
+    <string name="vision_alerta">La cámara vio: %1$s.</string>
+    <string name="vision_alerta_error">La cámara falló y el equipo alertó por seguridad.</string>
     <string name="notificacion_rearme_texto">El sistema cerró el suministro y quedó bloqueado. Revisa la cocina y luego rearma desde la app.</string>
     <string name="notificacion_fallo_respuesta">No se pudo enviar tu respuesta</string>
     <string name="notificacion_fallo_respuesta_texto">Abre la alerta y vuelve a tocar «Estoy en la cocina».</string>

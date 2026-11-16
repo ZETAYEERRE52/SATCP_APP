@@ -34,6 +34,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // BuildConfig.DEBUG: los registros de diagnóstico de la conexión solo salen en depuración.
+        buildConfig = true
     }
     testOptions {
         // android.util.Log devuelve valores por defecto en las pruebas unitarias en vez de fallar.

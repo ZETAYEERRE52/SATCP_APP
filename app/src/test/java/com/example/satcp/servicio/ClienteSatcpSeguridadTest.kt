@@ -43,7 +43,11 @@ class ClienteSatcpSeguridadTest {
         assertTrue(cliente.estadoConexion.value is EstadoConexion.Conectando)
         val error = runCatching { cliente.enviar(Comando.Estado) }.exceptionOrNull()
         assertTrue(error is SinConexion)
-        advanceTimeBy(10_001)
+        // Por Wi-Fi se esperan 3 s a que conteste hola.
+        advanceTimeBy(ClienteSatcp.TIEMPO_ESPERA_HOLA_WIFI_MS - 1)
+        runCurrent()
+        assertTrue(cliente.estadoConexion.value is EstadoConexion.Conectando)
+        advanceTimeBy(2)
         runCurrent()
         assertTrue(cliente.estadoConexion.value is EstadoConexion.Perdida)
     }

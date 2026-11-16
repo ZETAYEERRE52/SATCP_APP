@@ -46,5 +46,10 @@ interface Transporte {
     fun cerrar() = Unit
 }
 
-/** Espera antes del intento de reconexión número [intento] (0, 1, 2...): 1, 2, 4, 8, 16 y luego 30 s. */
-fun esperaReconexionMs(intento: Int): Long = minOf(30_000L, 1_000L shl intento.coerceIn(0, 5))
+/**
+ * Espera antes del intento de reconexión número [intento] (0, 1, 2...): 1, 2, 4, 8 y luego 15 s.
+ * Nunca minutos: en la red local un intento fallido es barato, y el equipo puede volver en cualquier momento.
+ */
+fun esperaReconexionMs(intento: Int): Long = minOf(ESPERA_MAXIMA_RECONEXION_MS, 1_000L shl intento.coerceIn(0, 4))
+
+const val ESPERA_MAXIMA_RECONEXION_MS = 15_000L

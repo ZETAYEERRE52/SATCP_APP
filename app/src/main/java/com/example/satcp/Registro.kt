@@ -1,6 +1,7 @@
 package com.example.satcp
 
 import android.util.Log
+import java.util.Locale
 
 /**
  * Registro de depuración del protocolo en Logcat, con la etiqueta `SATCP`. Nunca recibe contenidos
@@ -24,5 +25,18 @@ object Registro {
 
     fun aviso(mensaje: String) {
         Log.w(ETIQUETA, mensaje)
+    }
+
+    /**
+     * Diagnóstico TEMPORAL de cuánto tarda la conexión: `adb logcat -s SATCP_CONEXION`. Solo en
+     * compilaciones de depuración. Cada línea lleva los segundos desde que arrancó el proceso.
+     */
+    const val ETIQUETA_CONEXION = "SATCP_CONEXION"
+    private val inicioProcesoNs = System.nanoTime()
+
+    fun conexion(mensaje: String) {
+        if (!BuildConfig.DEBUG) return
+        val segundos = (System.nanoTime() - inicioProcesoNs) / 1e9
+        Log.i(ETIQUETA_CONEXION, String.format(Locale.ROOT, "[+%.3f s] %s", segundos, mensaje))
     }
 }

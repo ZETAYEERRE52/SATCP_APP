@@ -43,6 +43,7 @@ import com.example.satcp.ui.comun.textoFase
 import com.example.satcp.ui.comun.textoPresencia
 import com.example.satcp.ui.comun.textoTemperatura
 import com.example.satcp.ui.comun.textoTransporte
+import com.example.satcp.ui.comun.textoCausaAlerta
 import com.example.satcp.ui.comun.textoMotivo
 import com.example.satcp.ui.calibracion.textoUmbralEstufa
 import kotlinx.coroutines.delay
@@ -126,6 +127,7 @@ private fun ContenidoEstado(estado: DatosEstado, uiAlerta: UiAlerta, alertaVm: A
     estado.alerta?.let { alerta ->
         Tarjeta(modifier, MaterialTheme.colorScheme.errorContainer) {
             Text(textoMotivo(alerta), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(textoCausaAlerta(alerta, estado), style = MaterialTheme.typography.bodyMedium)
             AccionesAlerta(uiAlerta, alertaVm, grande = false)
         }
     }
@@ -140,6 +142,9 @@ private fun ContenidoEstado(estado: DatosEstado, uiAlerta: UiAlerta, alertaVm: A
     Tarjeta(modifier, colorFase(estado.fase)) {
         Text(stringResource(R.string.panel_fase), style = MaterialTheme.typography.labelLarge)
         Text(textoFase(estado.fase), style = MaterialTheme.typography.headlineSmall)
+        if (estado.fase == Fase.AUTOCALIBRACION) {
+            Text(stringResource(R.string.fase_autocalibracion_explicacion), style = MaterialTheme.typography.bodyMedium)
+        }
         Text(estado.fase.name, style = MaterialTheme.typography.bodySmall)
     }
 
@@ -167,7 +172,11 @@ private fun ContenidoEstado(estado: DatosEstado, uiAlerta: UiAlerta, alertaVm: A
                 style = MaterialTheme.typography.bodyMedium,
             )
             Text(
-                stringResource(R.string.panel_revision_si_supera, textoTemperatura(umbral)),
+                stringResource(
+                    R.string.panel_revision_si_supera,
+                    textoTemperatura(umbral),
+                    textoTemperatura(estado.estufa.umbralIncremento),
+                ),
                 style = MaterialTheme.typography.bodyMedium,
             )
         } else {

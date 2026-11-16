@@ -45,8 +45,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -153,12 +157,19 @@ class ClienteSatcp(
     /** La clave maestra se calcula una vez por clave: es lo único lento de abrir la sesión. */
     private var maestra: Pair<String, ByteArray>? = null
 
+    /** Pide cortar la espera entre intentos: cambió la red o se abrió la app. */
+    private val senalReintento = Channel<Unit>(Channel.CONFLATED)
+
     private val _estadoConexion = MutableStateFlow<EstadoConexion>(EstadoConexion.Desconectado)
     val estadoConexion: StateFlow<EstadoConexion> = _estadoConexion.asStateFlow()
 
     private val _estado = MutableStateFlow<DatosEstado?>(null)
     /** Último evento `estado` recibido; null antes del primero o sin conexión. */
     val estado: StateFlow<DatosEstado?> = _estado.asStateFlow()
+
+    private val _eventosEstado = MutableSharedFlow<DatosEstado>(extraBufferCapacity = 64)
+    /** Cada `estado` recibido, sin saltarse ninguno (un [StateFlow] puede perder los intermedios). Para la bitácora. */
+    val eventosEstado: SharedFlow<DatosEstado> = _eventosEstado.asSharedFlow()
 
     private val _info = MutableStateFlow<DatosInfo?>(null)
     /** Respuesta de `info`, pedida en cada conexión. */
@@ -198,11 +209,24 @@ class ClienteSatcp(
     fun conectar(transporte: Transporte) {
         // De inmediato y sin pasar por Desconectado: el servicio se detendría al verlo.
         _estadoConexion.value = EstadoConexion.Conectando(0)
+        Registro.conexion("conectar(): el usuario o la app eligió ${transporte.tipo}; se cierra el anterior (${_transporte.value?.tipo})")
         alcance.launch {
             liberarActual()
             _transporte.value = transporte
             _estadoConexion.value = EstadoConexion.Conectando(0)
             trabajo = alcance.launch { mantenerConexion(transporte) }
+        }
+    }
+
+    /**
+     * Si se está reintentando, hace el siguiente intento ya, desde la espera más corta. Lo llaman el
+     * aviso de cambio de red y la app al abrirse. Sin efecto si hay conexión o si no hay transporte.
+     */
+    fun reintentarAhora() {
+        val actual = _estadoConexion.value
+        if (actual is EstadoConexion.Perdida || actual is EstadoConexion.Conectando) {
+            Registro.conexion("reintentarAhora(): se corta la espera (estado $actual)")
+            senalReintento.trySend(Unit)
         }
     }
 
@@ -250,7 +274,12 @@ class ClienteSatcp(
             Registro.aviso("La respuesta de estado no se pudo leer: ${e.message}")
             return
         }
-        withContext(hilo) { if (_transporte.value != null) _estado.value = decodificado }
+        withContext(hilo) {
+            if (_transporte.value != null) {
+                _estado.value = decodificado
+                _eventosEstado.tryEmit(decodificado)
+            }
+        }
     }
 
     private suspend fun enviarEnHilo(comando: Comando, tiempoEsperaMs: Long): Respuesta {
@@ -383,6 +412,8 @@ class ClienteSatcp(
         while (true) {
             _estadoConexion.value = EstadoConexion.Conectando(intento)
             var funciono = false
+            val inicioIntento = System.nanoTime()
+            Registro.conexion("Intento #$intento con ${transporte.tipo}")
             val (motivo, detalle) = try {
                 sesion(transporte) { funciono = true }
                 MotivoPerdida.CERRADA to null
@@ -414,11 +445,19 @@ class ClienteSatcp(
                 MotivoPerdida.ERROR to (e.message ?: e.javaClass.simpleName)
             }
             terminarSesion()
+            Registro.conexion(
+                "Intento #$intento terminó tras ${(System.nanoTime() - inicioIntento) / 1_000_000} ms: $motivo" +
+                    (detalle?.let { " ($it)" } ?: "") + if (funciono) " (había llegado a recibir mensajes)" else ""
+            )
             // Una sesión que llegó a recibir estado vuelve a empezar la espera desde 1 s.
             if (funciono) intento = 0
             val espera = esperaReconexionMs(intento++)
+            Registro.conexion("Siguiente reintento (#$intento) en $espera ms")
             _estadoConexion.value = EstadoConexion.Perdida(motivo, detalle, espera)
-            delay(espera)
+            if (withTimeoutOrNull(espera) { senalReintento.receive() } != null) {
+                Registro.conexion("Espera cortada: se reintenta ya")
+                intento = 0
+            }
         }
     }
 
@@ -430,6 +469,7 @@ class ClienteSatcp(
             when (evento) {
                 EventoTransporte.Abierto -> launch {
                     abrirSesion(transporte)
+                    Registro.conexion("CONECTADO: sesión cifrada abierta")
                     _estadoConexion.value = EstadoConexion.Conectado
                     launch { vigilarSilencio() }
                     launch { pedirInfo() }
@@ -448,13 +488,25 @@ class ClienteSatcp(
     private suspend fun abrirSesion(transporte: Transporte) {
         val clave = leerClave() ?: throw ClaveIncorrecta()
         if (maestra?.first != clave) {
+            val inicioDerivacion = System.nanoTime()
             maestra = clave to withContext(despachadorDerivacion) { Criptografia.claveMaestra(clave) }
+            Registro.conexion("Clave maestra calculada (PBKDF2) en ${(System.nanoTime() - inicioDerivacion) / 1_000_000} ms")
         }
 
         val espera = CompletableDeferred<MensajeHola>()
         esperaHola = espera
+        val inicioHola = System.nanoTime()
         transporte.enviar(CodificadorProtocolo.codificarHola(ID_HOLA))
-        val hola = withTimeoutOrNull(TIEMPO_ESPERA_MS) { espera.await() } ?: throw ConexionSinEventos()
+        val esperaHolaMs = if (transporte.tipo == TipoTransporte.WIFI) TIEMPO_ESPERA_HOLA_WIFI_MS else TIEMPO_ESPERA_HOLA_BLE_MS
+        Registro.conexion("hola: ENVIADO; se espera la respuesta hasta $esperaHolaMs ms")
+        val hola = withTimeoutOrNull(esperaHolaMs) { espera.await() } ?: run {
+            Registro.conexion("hola: SIN RESPUESTA en $esperaHolaMs ms")
+            throw ConexionSinEventos()
+        }
+        Registro.conexion(
+            "hola: respuesta en ${(System.nanoTime() - inicioHola) / 1_000_000} ms " +
+                "(ok=${hola.ok}, protocolo=${hola.protocolo}, error=${hola.error}, reto=${if (hola.reto != null) "sí" else "no"})"
+        )
         when {
             hola.error == CodigosError.SIN_ESPACIO -> throw EquipoSinEspacio()
             !hola.ok || hola.protocolo != VERSION_PROTOCOLO -> throw FirmwareIncompatible()
@@ -584,6 +636,7 @@ class ClienteSatcp(
             }
             is EventoEstado -> {
                 _estado.value = mensaje.datos
+                _eventosEstado.tryEmit(mensaje.datos)
                 nanosUltimoEstado = System.nanoTime()
                 Registro.info("Evento estado: fase=${mensaje.datos.fase}")
                 alRecibirEstado()
@@ -609,6 +662,15 @@ class ClienteSatcp(
 
     companion object {
         const val TIEMPO_ESPERA_MS = 10_000L
+
+        /**
+         * En la red local el ESP32 contesta `hola` en milisegundos, pero si está usando la cámara puede
+         * tardar unos segundos: 5 s evita perder intentos buenos.
+         */
+        const val TIEMPO_ESPERA_HOLA_WIFI_MS = 5_000L
+
+        /** Por Bluetooth la respuesta puede venir partida en varias notificaciones. */
+        const val TIEMPO_ESPERA_HOLA_BLE_MS = 6_000L
         /** Respuesta de `foto` por cualquier transporte, y llegada de la imagen por Bluetooth. */
         const val TIEMPO_ESPERA_FOTO_MS = 30_000L
         const val REINTENTO_CAMARA_OCUPADA_MS = 3_000L

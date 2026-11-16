@@ -4,13 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.satcp.SatcpApp
-import com.example.satcp.servicio.ServicioVigilancia
 import com.example.satcp.servicio.UltimaConexion
 import com.example.satcp.transporte.BluetoothApagado
-import com.example.satcp.transporte.DestinoWifi
 import com.example.satcp.transporte.DispositivoBle
 import com.example.satcp.transporte.ServicioSatcp
-import com.example.satcp.transporte.TransporteBle
 import com.example.satcp.transporte.esIpv4Valida
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,8 +50,9 @@ class ConexionViewModel(aplicacion: Application) : AndroidViewModel(aplicacion) 
         return UiConexion(
             modo = when (ultima) {
                 is UltimaConexion.RedCasa -> ModoConexion.RED_CASA
-                is UltimaConexion.Bluetooth -> ModoConexion.BLUETOOTH
-                else -> ModoConexion.RED_PROPIA
+                UltimaConexion.RedPropia -> ModoConexion.RED_PROPIA
+                // La primera configuración se hace por Bluetooth.
+                is UltimaConexion.Bluetooth, null -> ModoConexion.BLUETOOTH
             },
             ipManual = (ultima as? UltimaConexion.RedCasa)?.ip.orEmpty(),
             ultima = ultima,
@@ -101,12 +99,11 @@ class ConexionViewModel(aplicacion: Application) : AndroidViewModel(aplicacion) 
     }
 
     fun conectarBluetooth(dispositivo: DispositivoBle) =
-        conectarBle(UltimaConexion.Bluetooth(dispositivo.direccion, dispositivo.nombre))
+        conectarCon(UltimaConexion.Bluetooth(dispositivo.direccion, dispositivo.nombre))
 
-    fun conectarRedPropia() = conectarWifi(DestinoWifi.RedPropia, UltimaConexion.RedPropia)
+    fun conectarRedPropia() = conectarCon(UltimaConexion.RedPropia)
 
-    fun conectarEquipo(equipo: ServicioSatcp) =
-        conectarWifi(DestinoWifi.RedCasa(equipo.ip, equipo.puerto), UltimaConexion.RedCasa(equipo.ip, equipo.puerto))
+    fun conectarEquipo(equipo: ServicioSatcp) = conectarCon(UltimaConexion.RedCasa(equipo.ip, equipo.puerto))
 
     fun conectarIpManual() {
         val ip = _ui.value.ipManual
@@ -114,40 +111,23 @@ class ConexionViewModel(aplicacion: Application) : AndroidViewModel(aplicacion) 
             _ui.update { it.copy(ipInvalida = true) }
             return
         }
-        conectarWifi(DestinoWifi.RedCasa(ip), UltimaConexion.RedCasa(ip, PUERTO_HTTP))
+        conectarCon(UltimaConexion.RedCasa(ip, PUERTO_HTTP))
     }
 
     fun reconectarUltima() {
-        when (val ultima = _ui.value.ultima) {
-            UltimaConexion.RedPropia -> conectarRedPropia()
-            is UltimaConexion.RedCasa ->
-                conectarWifi(DestinoWifi.RedCasa(ultima.ip, ultima.puerto), ultima)
-            is UltimaConexion.Bluetooth -> conectarBle(ultima)
-            null -> Unit
-        }
+        _ui.value.ultima?.let(::conectarCon)
     }
 
     /**
      * Un solo transporte a la vez: Wi-Fi y Bluetooth comparten la antena del ESP32, y usar los dos
-     * degrada mucho el Wi-Fi. [ClienteSatcp.conectar] cierra el transporte anterior (desconecta el
+     * degrada mucho el Wi-Fi. [SatcpApp.conectarCon] cierra el transporte anterior (desconecta el
      * GATT); aquí además se detiene la búsqueda del otro.
      */
-    private fun conectarBle(recordar: UltimaConexion.Bluetooth) {
+    private fun conectarCon(modo: UltimaConexion) {
         detenerEscaneo()
         detenerBusqueda()
-        app.preferencias.ultimaConexion = recordar
-        _ui.update { it.copy(ultima = recordar) }
-        app.cliente.conectar(TransporteBle(app, recordar.direccion, recordar.nombre))
-        ServicioVigilancia.iniciar(app)
-    }
-
-    private fun conectarWifi(destino: DestinoWifi, recordar: UltimaConexion) {
-        detenerBusqueda()
-        detenerEscaneo()
-        app.preferencias.ultimaConexion = recordar
-        _ui.update { it.copy(ultima = recordar) }
-        app.cliente.conectar(app.crearTransporteWifi(destino))
-        ServicioVigilancia.iniciar(app)
+        _ui.update { it.copy(ultima = modo) }
+        app.conectarCon(modo)
     }
 
     private companion object {

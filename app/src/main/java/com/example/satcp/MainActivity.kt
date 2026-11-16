@@ -24,9 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.satcp.ui.comun.permisosBluetooth
+import com.example.satcp.ui.comun.tienePermisos
 import com.example.satcp.servicio.EstadoConexion
 import com.example.satcp.transporte.TipoTransporte
+import com.example.satcp.ui.bitacora.PantallaBitacora
 import com.example.satcp.ui.calibracion.PantallaCalibracion
 import com.example.satcp.ui.camara.PantallaCamara
 import com.example.satcp.ui.clave.PantallaClave
@@ -71,6 +75,13 @@ private fun AppSatcp() {
     val transporte by app.cliente.transporte.collectAsStateWithLifecycle()
     var pestania by rememberSaveable { mutableStateOf(Pestania.PANEL) }
     var calibrando by rememberSaveable { mutableStateOf(false) }
+    var viendoBitacora by rememberSaveable { mutableStateOf(false) }
+    val contexto = LocalContext.current
+    LifecycleStartEffect(Unit) {
+        val puedeUsarBluetooth = tienePermisos(contexto, permisosBluetooth) && app.escaner.encendido
+        app.alAbrirApp(puedeUsarBluetooth)
+        onStopOrDispose { }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -119,10 +130,14 @@ private fun AppSatcp() {
                 Pestania.CAMARA -> PantallaCamara(modificador)
                 Pestania.VIVO -> PantallaVivo(porBluetooth = transporte?.tipo == TipoTransporte.BLE, modifier = modificador)
                 Pestania.HORARIOS -> PantallaHorarios(irAConfiguracion = { pestania = Pestania.CONFIGURACION }, modifier = modificador)
-                Pestania.CONFIGURACION -> if (calibrando) {
-                    PantallaCalibracion(volver = { calibrando = false }, modifier = modificador)
-                } else {
-                    PantallaConfiguracion(abrirCalibracion = { calibrando = true }, modifier = modificador)
+                Pestania.CONFIGURACION -> when {
+                    calibrando -> PantallaCalibracion(volver = { calibrando = false }, modifier = modificador)
+                    viendoBitacora -> PantallaBitacora(volver = { viendoBitacora = false }, modifier = modificador)
+                    else -> PantallaConfiguracion(
+                        abrirCalibracion = { calibrando = true },
+                        abrirBitacora = { viendoBitacora = true },
+                        modifier = modificador,
+                    )
                 }
             }
         }

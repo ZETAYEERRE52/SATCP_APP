@@ -49,6 +49,7 @@ import com.example.satcp.protocolo.DatosInfo
 import com.example.satcp.protocolo.VERSION_PROTOCOLO
 import com.example.satcp.protocolo.Estufa
 import com.example.satcp.servicio.RedGuardada
+import com.example.satcp.servicio.UltimaConexion
 import com.example.satcp.ui.calibracion.textoUmbralEstufa
 import com.example.satcp.ui.comun.estaExcluidaDeBateria
 import com.example.satcp.ui.comun.pedirExclusionBateria
@@ -56,6 +57,7 @@ import com.example.satcp.ui.comun.pedirExclusionBateria
 @Composable
 fun PantallaConfiguracion(
     abrirCalibracion: () -> Unit,
+    abrirBitacora: () -> Unit,
     modifier: Modifier = Modifier,
     vm: ConfiguracionViewModel = viewModel(),
 ) {
@@ -72,7 +74,9 @@ fun PantallaConfiguracion(
         TarjetaBateria()
         TarjetaRedesGuardadas(ui, vm)
         TarjetaWifiCasa(ui, vm)
+        TarjetaModoConexion(ui, vm)
         TarjetaCalibracionEstufa(ui.estufa, abrirCalibracion)
+        TarjetaBitacora(abrirBitacora)
         TarjetaCambioClave(ui.cambioClave, vm)
         TarjetaInfo(ui, vm::actualizarInfo)
     }
@@ -294,6 +298,75 @@ private fun TarjetaCambioClave(formulario: FormularioClave, vm: ConfiguracionVie
                 color = if (resultado == ResultadoCambioClave.LISTA) Color.Unspecified else MaterialTheme.colorScheme.error,
             )
         }
+    }
+}
+
+/**
+ * Con qué se conecta la app al equipo de aquí en adelante. Se elige estando conectado (normalmente por
+ * Bluetooth, la red de configuración). La app no cambia sola de modo: si el elegido falla, reintenta con él.
+ */
+@Composable
+private fun TarjetaModoConexion(ui: UiConfiguracion, vm: ConfiguracionViewModel) {
+    Tarjeta {
+        Text(stringResource(R.string.config_modo_titulo), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.config_modo_explicacion))
+        Text(
+            stringResource(R.string.config_modo_actual, textoModo(ui.modo)),
+            fontWeight = FontWeight.Medium,
+        )
+
+        val ipCasa = ui.ipCasaValida
+        OpcionModo(
+            texto = if (ipCasa != null) stringResource(R.string.config_modo_usar_casa_ip, ipCasa) else stringResource(R.string.config_modo_usar_casa),
+            elegido = ui.modo is UltimaConexion.RedCasa,
+            disponible = ipCasa != null,
+            ayuda = if (ipCasa == null) stringResource(R.string.config_modo_casa_sin_ip) else null,
+            usar = vm::usarRedCasa,
+        )
+        OpcionModo(
+            texto = stringResource(R.string.config_modo_usar_satcp),
+            elegido = ui.modo == UltimaConexion.RedPropia,
+            disponible = true,
+            ayuda = null,
+            usar = vm::usarRedSatcp,
+        )
+        OpcionModo(
+            texto = stringResource(R.string.config_modo_usar_bluetooth),
+            elegido = ui.modo is UltimaConexion.Bluetooth,
+            disponible = ui.equipoBle != null,
+            ayuda = if (ui.equipoBle == null) stringResource(R.string.config_modo_bluetooth_sin_equipo) else null,
+            usar = vm::usarBluetooth,
+        )
+        Text(stringResource(R.string.config_modo_aviso), style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun OpcionModo(texto: String, elegido: Boolean, disponible: Boolean, ayuda: String?, usar: () -> Unit) {
+    if (elegido) {
+        Button(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.config_modo_en_uso, texto))
+        }
+    } else {
+        OutlinedButton(onClick = usar, enabled = disponible, modifier = Modifier.fillMaxWidth()) { Text(texto) }
+    }
+    ayuda?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+}
+
+@Composable
+private fun textoModo(modo: UltimaConexion?): String = when (modo) {
+    is UltimaConexion.RedCasa -> stringResource(R.string.config_modo_casa, modo.ip)
+    UltimaConexion.RedPropia -> stringResource(R.string.config_modo_satcp)
+    is UltimaConexion.Bluetooth -> stringResource(R.string.config_modo_bluetooth, modo.nombre ?: modo.direccion)
+    null -> stringResource(R.string.config_modo_ninguno)
+}
+
+@Composable
+private fun TarjetaBitacora(abrir: () -> Unit) {
+    Tarjeta {
+        Text(stringResource(R.string.bitacora_titulo), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.config_bitacora_explicacion))
+        Button(onClick = abrir) { Text(stringResource(R.string.config_bitacora_abrir)) }
     }
 }
 

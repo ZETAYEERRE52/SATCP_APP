@@ -24,6 +24,7 @@ import com.example.satcp.protocolo.OrigenAlerta
 import com.example.satcp.ui.alerta.AlertaActivity
 import com.example.satcp.ui.comun.recursoConexionCorto
 import com.example.satcp.ui.comun.recursoVision
+import com.example.satcp.ui.comun.textoCausaAlerta
 
 /**
  * Notificaciones de la app: la permanente del servicio y las de alerta, que deben sonar y
@@ -90,11 +91,11 @@ class NotificadorAlertas(contexto: Context) {
             }
             alerta.requiereRearme -> {
                 gestor.cancel(ID_ALERTA)
-                publicar(ID_REARME, notificacionRearme())
+                publicar(ID_REARME, notificacionRearme(estado, alerta))
             }
             else -> {
                 gestor.cancel(ID_REARME)
-                publicar(ID_ALERTA, notificacionAlerta(estado.fase, alerta))
+                publicar(ID_ALERTA, notificacionAlerta(estado, alerta))
             }
         }
     }
@@ -133,14 +134,15 @@ class NotificadorAlertas(contexto: Context) {
             .build(),
     )
 
-    private fun notificacionAlerta(fase: Fase, alerta: Alerta): Notification {
+    private fun notificacionAlerta(estado: DatosEstado, alerta: Alerta): Notification {
         val motivo = contexto.getString(recursoVision(alerta.vision))
-        val enCuentaRegresiva = fase == Fase.ALERTA_USUARIO && alerta.cierreEnS > 0
-        val texto = if (enCuentaRegresiva) {
+        val enCuentaRegresiva = estado.fase == Fase.ALERTA_USUARIO && alerta.cierreEnS > 0
+        val resumen = if (enCuentaRegresiva) {
             contexto.getString(R.string.notificacion_alerta_texto, motivo, alerta.cierreEnS)
         } else {
             contexto.getString(R.string.notificacion_alerta_sin_cuenta, motivo)
         }
+        val texto = resumen + "\n" + textoCausaAlerta(contexto, alerta, estado)
         val pantalla = intentAbrir(AlertaActivity::class.java, CODIGO_ABRIR_ALERTA)
         return NotificationCompat.Builder(contexto, CANAL_ALERTAS)
             .setSmallIcon(R.drawable.ic_notificacion)
@@ -170,13 +172,15 @@ class NotificadorAlertas(contexto: Context) {
             .build()
     }
 
-    private fun notificacionRearme(): Notification {
+    private fun notificacionRearme(estado: DatosEstado, alerta: Alerta): Notification {
         val pantalla = intentAbrir(AlertaActivity::class.java, CODIGO_ABRIR_ALERTA)
+        val causa = textoCausaAlerta(contexto, alerta, estado)
+        val texto = contexto.getString(R.string.notificacion_rearme_con_causa, causa)
         return NotificationCompat.Builder(contexto, CANAL_ALERTAS)
             .setSmallIcon(R.drawable.ic_notificacion)
             .setContentTitle(contexto.getString(R.string.notificacion_rearme_titulo))
-            .setContentText(contexto.getString(R.string.notificacion_rearme_texto))
-            .setStyle(NotificationCompat.BigTextStyle().bigText(contexto.getString(R.string.notificacion_rearme_texto)))
+            .setContentText(causa)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(texto))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

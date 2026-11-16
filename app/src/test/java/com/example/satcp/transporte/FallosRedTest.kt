@@ -65,7 +65,9 @@ class FallosRedTest {
     }
 
     @Test
-    fun elWebSocketLlevaLatidoDe15Segundos() {
+    fun elWebSocketLlevaLatidoDe15SegundosYConexionDe3() {
+        // Con 5 s, cada pausa normal del ESP32 (cámara, SD) cortaba la conexión.
         assertEquals(15_000, TransporteWifi.clientePorDefecto.pingIntervalMillis)
+        assertEquals(3_000, TransporteWifi.clientePorDefecto.connectTimeoutMillis)
     }
 }

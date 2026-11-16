@@ -9,6 +9,7 @@ import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSpecifier
 import android.os.Build
 import android.util.Log
+import com.example.satcp.BuildConfig
 import com.example.satcp.Registro
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +19,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import okhttp3.ConnectionPool
 import okhttp3.Dns
@@ -70,14 +73,18 @@ class AccesoHttp(val cliente: OkHttpClient, val urlBase: String, val host: Strin
  *   `Network`; si no, Android mandaría el tráfico por datos móviles porque la red no tiene internet.
  * - Red de la casa: OkHttp pide `satcp.local` y [DnsSatcp] lo traduce a la IP conocida. Así el
  *   tráfico sin cifrar se permite solo para `192.168.4.1` y `satcp.local` (network_security_config).
- *   El router puede cambiarle la IP al ESP32: si [buscarEquipo] está definido y no se pudo llegar a
- *   él, se busca de nuevo antes del siguiente intento.
+ *   En cada intento se pregunta `GET /info` a la vez a la IP actual y a los [candidatos] (IP que
+ *   informó el equipo, mDNS), y se abre el WebSocket con el primero que responde. El socket sale
+ *   atado a la red Wi-Fi del equipo, y si Android la pierde la conexión se cierra en el acto.
  */
 class TransporteWifi(
     contexto: Context,
     destino: DestinoWifi,
     private val clienteBase: OkHttpClient = clientePorDefecto,
-    private val buscarEquipo: (suspend () -> DestinoWifi.RedCasa?)? = null,
+    /** Otras direcciones donde puede estar el equipo en la red de la casa. */
+    private val candidatos: (() -> Flow<DestinoWifi.RedCasa>)? = null,
+    /** Avisa que el equipo respondió en otra dirección, para recordarla. */
+    private val alCambiarDestino: (DestinoWifi.RedCasa) -> Unit = {},
     /** La clave del equipo, que también es la contraseña de la red `SATCP` (§1b). */
     private val claveRed: String? = null,
 ) : Transporte {
@@ -87,8 +94,6 @@ class TransporteWifi(
     /** A dónde se conecta ahora; en la red de la casa cambia si el equipo aparece con otra IP. */
     @Volatile var destino: DestinoWifi = destino
         private set
-
-    @Volatile private var falloAlConectar = false
 
     private val conectividad = contexto.applicationContext.getSystemService(ConnectivityManager::class.java)
 
@@ -118,15 +123,21 @@ class TransporteWifi(
         sesion = this
         // Se mantiene entre reconexiones: es justo cuando la red se cae que no debe dormirse.
         candadoWifi.acquire()
+        val inicioIntento = System.nanoTime()
+        fun msIntento() = (System.nanoTime() - inicioIntento) / 1_000_000
+        var vigiaRedCasa: ConnectivityManager.NetworkCallback? = null
         try {
-            if (falloAlConectar) buscarEquipo?.invoke()?.let { destino = it }
+            Registro.conexion("Wi-Fi: inicio del intento. Destino=${describirDestino(destino)}")
+            Registro.conexion("Wi-Fi: redes del teléfono: ${describirRedes(conectividad, ipDe(destino))}")
             var abierto = false
             val acceso = when (val objetivo = destino) {
                 DestinoWifi.RedPropia -> {
+                    Registro.conexion("Wi-Fi: esperando que Android entregue la red SATCP…")
                     val red = obtenerRedPropia()
+                    Registro.conexion("Wi-Fi: red SATCP lista a los ${msIntento()} ms ($red)")
                     AccesoHttp(
                         cliente = clienteBase.newBuilder()
-                            .socketFactory(red.socketFactory)
+                            .socketFactory(if (BuildConfig.DEBUG) FabricaSocketsDiagnostico(red) else red.socketFactory)
                             .dns(object : Dns {
                                 override fun lookup(hostname: String) = red.getAllByName(hostname).toList()
                             })
@@ -135,18 +146,48 @@ class TransporteWifi(
                         host = IP_RED_PROPIA,
                     )
                 }
-                is DestinoWifi.RedCasa -> AccesoHttp(
-                    cliente = clienteBase.newBuilder().dns(DnsSatcp(objetivo.ip)).build(),
-                    urlBase = "http://$HOST_MDNS:${objetivo.puerto}",
-                    host = HOST_MDNS,
-                )
+                is DestinoWifi.RedCasa -> {
+                    val elegido = elegirEnRedCasa(objetivo)
+                    Registro.conexion(
+                        "Wi-Fi: búsqueda terminada en ${msIntento()} ms -> " +
+                            (elegido?.let { "responde en ${it.ip}:${it.puerto}" } ?: "ningún candidato respondió")
+                    )
+                    if (elegido == null) throw EquipoNoEncontrado(null)
+                    if (elegido != objetivo) {
+                        destino = elegido
+                        alCambiarDestino(elegido)
+                    }
+                    val red = redWifiPara(conectividad, elegido.ip)
+                    Registro.conexion("Wi-Fi: el socket sale atado a ${red ?: "la red por defecto (no hay Wi-Fi)"}")
+                    vigiaRedCasa = red?.let(::vigilarRed)
+                    AccesoHttp(
+                        cliente = clienteBase.newBuilder()
+                            .dns(DnsSatcp(elegido.ip))
+                            .apply {
+                                when {
+                                    BuildConfig.DEBUG -> socketFactory(FabricaSocketsDiagnostico(red))
+                                    red != null -> socketFactory(red.socketFactory)
+                                }
+                            }
+                            .build(),
+                        urlBase = "http://$HOST_MDNS:${elegido.puerto}",
+                        host = HOST_MDNS,
+                    )
+                }
             }
 
             val solicitud = Request.Builder().url(acceso.url(RUTA_WS).replaceFirst("http", "ws")).build()
-            webSocket = acceso.cliente.newWebSocket(solicitud, object : WebSocketListener() {
+            Registro.conexion(
+                "WebSocket: solicitando ${solicitud.url} -> IP ${ipDe(destino)} " +
+                    "(conexión ${acceso.cliente.connectTimeoutMillis} ms, handshake $TIEMPO_HANDSHAKE_MS ms, " +
+                    "ping ${acceso.cliente.pingIntervalMillis} ms)"
+            )
+            // El handshake es corto en la red local; las descargas usan el cliente de [acceso], con más tiempo.
+            val clienteWs = acceso.cliente.newBuilder().readTimeout(TIEMPO_HANDSHAKE_MS, TimeUnit.MILLISECONDS).build()
+            webSocket = clienteWs.newWebSocket(solicitud, object : WebSocketListener() {
                 override fun onOpen(webSocket: WebSocket, response: Response) {
+                    Registro.conexion("WebSocket: handshake COMPLETO (HTTP ${response.code}) a los ${msIntento()} ms del intento")
                     abierto = true
-                    falloAlConectar = false
                     accesoHttp = acceso
                     trySend(EventoTransporte.Abierto)
                 }
@@ -160,11 +201,16 @@ class TransporteWifi(
                 }
 
                 override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                    Registro.conexion("WebSocket: cerrado por el equipo (código $code) a los ${msIntento()} ms del intento")
                     close()
                 }
 
                 override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                    falloAlConectar = !abierto
+                    Registro.conexion(
+                        "WebSocket: FALLÓ a los ${msIntento()} ms del intento (" +
+                            (if (abierto) "ya estaba abierto" else "antes de abrir") +
+                            ", HTTP ${response?.code}): ${t.javaClass.simpleName}: ${t.message} -> ${causaDe(t)}"
+                    )
                     close(if (!abierto && response == null) EquipoNoEncontrado(t) else WebSocketFallido(t, response?.code))
                 }
             })
@@ -172,6 +218,7 @@ class TransporteWifi(
             awaitClose()
         } finally {
             // También si se cancela mientras Android todavía se une a la red.
+            vigiaRedCasa?.let { runCatching { conectividad.unregisterNetworkCallback(it) } }
             sesion = null
             webSocket?.cancel()
             webSocket = null
@@ -253,6 +300,7 @@ class TransporteWifi(
         }
 
         override fun onLost(network: Network) {
+            Registro.conexion("Wi-Fi: Android avisa que se perdió la red SATCP ($network)")
             synchronized(bloqueoRed) {
                 if (redPropia.isCompleted) redPropia = CompletableDeferred()
             }
@@ -294,6 +342,44 @@ class TransporteWifi(
         }
     }
 
+    /** Pregunta `/info` a la vez a [actual] y a los [candidatos]; el primero que responde gana. */
+    private suspend fun elegirEnRedCasa(actual: DestinoWifi.RedCasa): DestinoWifi.RedCasa? {
+        val fuentes = flow {
+            emit(actual)
+            candidatos?.let { emitAll(it()) }
+        }
+        return primeroQueResponda(fuentes, LIMITE_BUSQUEDA_MS, clave = { it.ip to it.puerto }) { candidato ->
+            Registro.conexion("Candidato ${candidato.ip}:${candidato.puerto}: se pregunta /info")
+            esSatcp(clienteBase, candidato.ip, candidato.puerto, redWifiPara(conectividad, candidato.ip), TIEMPO_RED_LOCAL_MS)
+        }
+    }
+
+    /** Si Android pierde [red], la conexión se da por perdida al momento, sin esperar al vigilante. */
+    private fun vigilarRed(red: Network): ConnectivityManager.NetworkCallback {
+        val vigia = object : ConnectivityManager.NetworkCallback() {
+            override fun onLost(network: Network) {
+                if (network != red) return
+                Registro.conexion("Wi-Fi: Android avisa que se perdió la red de la casa ($network)")
+                sesion?.close(RedPerdida())
+            }
+        }
+        conectividad.registerNetworkCallback(
+            NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
+            vigia,
+        )
+        return vigia
+    }
+
+    private fun describirDestino(objetivo: DestinoWifi) = when (objetivo) {
+        DestinoWifi.RedPropia -> "red SATCP ($IP_RED_PROPIA)"
+        is DestinoWifi.RedCasa -> "red de la casa (${objetivo.ip}:${objetivo.puerto})"
+    }
+
+    private fun ipDe(objetivo: DestinoWifi) = when (objetivo) {
+        DestinoWifi.RedPropia -> IP_RED_PROPIA
+        is DestinoWifi.RedCasa -> objetivo.ip
+    }
+
     companion object {
         const val SSID_RED_PROPIA = "SATCP"
         const val IP_RED_PROPIA = "192.168.4.1"
@@ -304,13 +390,27 @@ class TransporteWifi(
         private const val ESPERA_RED_ANTIGUA_MS = 15_000
         private const val ETIQUETA = "TransporteWifi"
 
-        /** Latido del WebSocket: si el ESP32 no contesta el ping, OkHttp cierra la conexión y se reconecta. */
+        /**
+         * Latido del WebSocket: OkHttp corta la conexión si el ESP32 no contesta un ping antes de enviar
+         * el siguiente. El ESP32 llega a quedarse callado 5-14 s mientras usa la cámara o la SD, así que
+         * con 5 s cada pausa normal era un corte. Con 15 s fue estable en las pruebas; el vigilante de
+         * silencio de 15 s ya detecta un socket muerto.
+         */
         const val INTERVALO_PING_S = 15L
+
+        /** Handshake del WebSocket: el ESP32 puede tardar en atenderlo si está usando la cámara. */
+        const val TIEMPO_HANDSHAKE_MS = 5_000L
+
+        /** Conexión TCP, handshake del WebSocket y `/info`: en la red local, 3 s sin respuesta ya es un fallo. */
+        const val TIEMPO_RED_LOCAL_MS = 3_000L
+
+        /** Tiempo total para hallar el equipo entre los candidatos (mDNS tarda unos segundos en verlo). */
+        const val LIMITE_BUSQUEDA_MS = 7_000L
 
         val clientePorDefecto: OkHttpClient = OkHttpClient.Builder()
             // El WebSocket no vuelve al pool; así ninguna descarga deja una conexión inactiva abierta.
             .connectionPool(ConnectionPool(0, 1, TimeUnit.SECONDS))
-            .connectTimeout(5, TimeUnit.SECONDS)
+            .connectTimeout(TIEMPO_RED_LOCAL_MS, TimeUnit.MILLISECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .pingInterval(INTERVALO_PING_S, TimeUnit.SECONDS)
             .build()

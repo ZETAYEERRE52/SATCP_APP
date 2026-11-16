@@ -15,6 +15,8 @@ import com.example.satcp.protocolo.VERSION_PROTOCOLO
 import com.example.satcp.seguridad.Criptografia
 import com.example.satcp.servicio.EstadoConexion
 import com.example.satcp.servicio.RedGuardada
+import com.example.satcp.servicio.UltimaConexion
+import com.example.satcp.transporte.esIpv4Valida
 import com.example.satcp.transporte.SinConexion
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -79,7 +81,13 @@ data class UiConfiguracion(
     val redesGuardadas: List<RedGuardada> = emptyList(),
     /** Bloque `estufa` del último `estado`, o `null` si aún no llega. */
     val estufa: Estufa? = null,
+    /** El modo de conexión configurado: el que usa la app al abrirse y al reintentar. */
+    val modo: UltimaConexion? = null,
+    /** El último equipo conectado por Bluetooth, para poder volver a ese modo. */
+    val equipoBle: UltimaConexion.Bluetooth? = null,
 ) {
+    /** La IP de la casa que informó el equipo, si es válida: sin ella no se puede pasar a la red de la casa. */
+    val ipCasaValida: String? get() = ipCasa?.trim()?.takeIf(::esIpv4Valida)
     val incompatible: Boolean get() = info?.protocolo != null && info.protocolo != VERSION_PROTOCOLO
 }
 
@@ -95,13 +103,18 @@ class ConfiguracionViewModel(aplicacion: Application) : AndroidViewModel(aplicac
 
     val ui: StateFlow<UiConfiguracion> =
         combine(
-            combine(formulario, formularioClave, ::Pair),
+            combine(formulario, formularioClave, cliente.transporte) { wifi, clave, _ -> wifi to clave },
             cliente.info,
             cliente.estado,
             estadoInfo,
             almacenRedes.redes,
         ) { (wifi, clave), info, estado, (actualizando, error), redes ->
-            UiConfiguracion(wifi, clave, info, actualizando, error, estado?.conexion?.wifiCasaIp, redes, estado?.estufa)
+            UiConfiguracion(
+                wifi, clave, info, actualizando, error, estado?.conexion?.wifiCasaIp, redes, estado?.estufa,
+                // Las preferencias no avisan cambios: se releen cada vez que cambia el transporte o el estado.
+                modo = app.preferencias.ultimaConexion,
+                equipoBle = app.preferencias.equipoBle,
+            )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiConfiguracion())
 
     fun cambiarClaveNueva(texto: String) =
@@ -210,6 +223,21 @@ class ConfiguracionViewModel(aplicacion: Application) : AndroidViewModel(aplicac
         }
     }
 
+    // ---- Modo de conexión: se decide aquí, normalmente estando conectado por Bluetooth ----
+
+    /** Pasa a la red de la casa con la IP que informó el equipo. */
+    fun usarRedCasa() {
+        val ip = ui.value.ipCasaValida ?: return
+        app.conectarCon(UltimaConexion.RedCasa(ip, PUERTO_HTTP))
+    }
+
+    fun usarRedSatcp() = app.conectarCon(UltimaConexion.RedPropia)
+
+    fun usarBluetooth() {
+        val equipo = ui.value.equipoBle ?: return
+        app.conectarCon(equipo)
+    }
+
     fun actualizarInfo() {
         if (estadoInfo.value.first) return
         estadoInfo.value = true to null
@@ -240,5 +268,6 @@ class ConfiguracionViewModel(aplicacion: Application) : AndroidViewModel(aplicac
         /** Cuánto se espera la IP tras el `ok` de `wifi`. El firmware hace 6 intentos de unos 5 s. */
         const val ESPERA_IP_MS = 30_000L
         private const val GRACIA_IP_MS = 2_000L
+        private const val PUERTO_HTTP = 80
     }
 }
